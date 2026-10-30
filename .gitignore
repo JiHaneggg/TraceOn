@@ -1,0 +1,49 @@
+# ===== 환경변수 / 비밀값 =====
+.env
+.env.*
+!.env.example
+
+# ===== Java / Gradle (backend) =====
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+out/
+bin/
+*.class
+*.log
+HELP.md
+
+# ===== IDE =====
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+!.vscode/extensions.json
+.project
+.classpath
+.settings/
+
+# ===== Python (ml-service 등) =====
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+*.egg-info/
+
+# ===== 데이터 / 모델 산출물 (대용량은 Git에 올리지 않음) =====
+data/raw/
+data/processed/
+*.parquet
+*.pkl
+*.joblib
+*.pt
+neo4j-data/
+neo4j-import/
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
