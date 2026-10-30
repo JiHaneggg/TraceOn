@@ -1,0 +1,46 @@
+# TraceOn 로컬 개발 환경
+#   전체 실행:        docker compose up -d --build
+#   Neo4j만 실행:     docker compose up -d neo4j   (백엔드는 IntelliJ / gradlew bootRun으로 실행할 때)
+# 실행 전 .env.example을 .env로 복사하고 NEO4J_PASSWORD를 설정해야 한다.
+
+name: traceon
+
+services:
+  neo4j:
+    image: neo4j:5.26.32-community
+    ports:
+      - "127.0.0.1:7474:7474"   # Neo4j Browser
+      - "127.0.0.1:7687:7687"   # Bolt (애플리케이션 접속)
+    environment:
+      # 비밀번호가 비어 있으면 compose 단계에서 즉시 실패시킨다.
+      NEO4J_AUTH: "neo4j/${NEO4J_PASSWORD:?.env에 NEO4J_PASSWORD(8자 이상)를 설정하세요}"
+      NEO4J_server_memory_heap_initial__size: 512m
+      NEO4J_server_memory_heap_max__size: 1g
+      NEO4J_server_memory_pagecache_size: 512m
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+    healthcheck:
+      test: ["CMD-SHELL", "cypher-shell -u neo4j -p \"$${NEO4J_AUTH#neo4j/}\" 'RETURN 1' >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+
+  backend:
+    build: ./backend
+    ports:
+      - "127.0.0.1:${SERVER_PORT:-8080}:8080"
+    environment:
+      # 컨테이너 안에서는 서비스 이름(neo4j)으로 접속한다.
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: ${NEO4J_USER:-neo4j}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+      NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
+    depends_on:
+      neo4j:
+        condition: service_healthy
+
+volumes:
+  neo4j_data:
+  neo4j_logs:

@@ -28,8 +28,6 @@ TraceOn/
 └── README.md
 ```
 
-> `backend/`, `docker-compose.yml`, `.env.example`은 다음 단계에서 추가됩니다.
-
 ## 기술 스택
 
 | 영역 | 기술 |
@@ -50,4 +48,23 @@ TraceOn/
 
 ## 실행 방법
 
-다음 단계(Docker Compose 구성)에서 작성합니다.
+사전 준비: Docker Desktop 실행 중. (로컬 백엔드 실행은 JDK 21 이상, 없으면 Gradle이 자동 설치)
+
+```powershell
+# 1) 환경변수 파일 준비 후 NEO4J_PASSWORD(8자 이상) 입력
+Copy-Item .env.example .env
+
+# 2-a) 전체 실행 (Neo4j + 백엔드)
+docker compose up -d --build
+
+# 2-b) 개발 시: Neo4j만 컨테이너로, 백엔드는 로컬에서 실행
+docker compose up -d neo4j
+cd backend; .\gradlew.bat bootRun
+```
+
+| 주소 | 용도 |
+|---|---|
+| http://localhost:8080/actuator/health | 백엔드 및 Neo4j 연결 상태 |
+| http://localhost:7474 | Neo4j Browser (neo4j / .env의 비밀번호) |
+
+종료: `docker compose down` (데이터는 볼륨에 유지). 데이터까지 삭제: `docker compose down -v`
