@@ -36,6 +36,7 @@ venv/
 # ===== 데이터 / 모델 산출물 (대용량은 Git에 올리지 않음) =====
 data/raw/
 data/processed/
+data/import/
 *.parquet
 *.pkl
 *.joblib

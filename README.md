@@ -21,6 +21,7 @@
 ```text
 TraceOn/
 ├── backend/             # Spring Boot (Java 21) - Graph, Hybrid, Experiment API
+├── data-pipeline/       # 원천 데이터 → 팀 공통 데이터 전처리 (Python)
 ├── ml-service/          # ML 점수 산출 서비스 (ML 담당)
 ├── docs/                # 아키텍처, API 명세, 설계 결정
 ├── docker-compose.yml   # 전체 실행 환경 (backend + Neo4j)
