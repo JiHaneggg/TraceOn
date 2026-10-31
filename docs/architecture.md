@@ -33,6 +33,6 @@ HybridController
 ## 미확정 사항
 
 - 탐지 단위 (계좌 / 거래 / Subgraph) 및 라벨 기준
-- Rule Engine 구현 언어와 배포 형태 (백엔드 내부 vs 별도 서비스)
+- Rule Engine 구현 언어·API 규격 (별도 서비스로 가정, ADR-004)
 - LLM Judge 구현 위치와 담당자
 - Neo4j 노드·관계 스키마

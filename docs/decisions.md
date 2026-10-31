@@ -19,3 +19,26 @@
 - docker-compose.yml은 저장소 루트에 둔다. (하위 폴더에 두면 빌드 경로가 복잡해짐)
 - Neo4j는 핵심 구성요소이므로 compose profile 없이 항상 실행한다.
 - 브랜치: main / develop / feature/*.
+
+## ADR-004. Rule Engine은 별도 서비스로 구현한다고 가정한다 (2026-10-30, 가정)
+
+- 결정: Rule Engine은 Rule 담당자가 별도 서비스로 구현한다. 백엔드는 `RuleDetectionClient`가 HTTP로 호출한다.
+- 영향: Rule / ML 클라이언트가 같은 형태(Subgraph JSON 요청 → 점수 + 근거 응답)가 되므로 공통 규격으로 설계한다.
+- 확정 필요: Rule 담당자와 구현 언어·포트·API 규격 합의.
+
+## ADR-005. 백엔드 기본 설정 (2026-10-30)
+
+- 패키지: `com.traceon`
+- Java 21을 Gradle toolchain으로 고정한다. 개발 PC에 JDK 25만 있어도 Gradle이 JDK 21을 자동으로 내려받아 빌드한다 (foojay resolver).
+- 이유: 팀원마다 설치된 JDK가 달라도 같은 버전으로 컴파일·테스트되도록 하기 위함.
+
+## ADR-006. 데이터셋과 그래프 모델: 거래 = 관계, 탐지·평가 단위 = 거래 (2026-10-31)
+
+- 데이터셋: IBM Transactions for Anti-Money Laundering (AML), 합성 데이터. 사용할 규모(HI/LI, Small/Medium/Large)는 확정 필요.
+- 결정: `(:Account)-[:TRANSFER]->(:Account)`. 거래 1건 = TRANSFER 관계 1개. 정답 라벨 `isLaundering`은 관계 속성.
+- 이유
+  1. 정답 라벨이 거래 단위(`Is Laundering`)이므로 탐지·평가 단위는 거래다. 라벨·점수는 관계 속성으로 충분히 저장된다.
+  2. 데이터셋의 패턴 정의("Max 12 hops", "9-degree Fan-In")가 계좌→계좌 hop 기준이라 Hop 의미가 일치한다.
+  3. IBM AML의 대표 ML 접근(GNN 엣지 분류)과 그래프 구조가 같아 ML 담당자가 그대로 내보내 쓸 수 있다.
+  4. 거래를 노드로 만들면 노드 수와 hop 수가 2배가 되고, 거래에 연결할 다른 개체(기기·IP 등)가 데이터셋에 없다.
+- 보완: 데이터셋에 거래 ID가 없으므로 전처리에서 결정적 `txId`를 부여하고, 모든 담당자가 같은 ID를 사용한다.
