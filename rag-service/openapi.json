@@ -1,0 +1,294 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "TraceOn RAG API",
+    "version": "0.3.0",
+    "description": "Grounded local retrieval, explicit scope checks and review report generation. Template mode is offline; explicitly configured OpenAI mode selects verified IDs only."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8092"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Index health and corpus version"
+          }
+        }
+      }
+    },
+    "/v1/rag/search": {
+      "post": {
+        "operationId": "search_regulations",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "query"
+                ],
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500
+                  },
+                  "topK": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 8,
+                    "default": 3
+                  },
+                  "jurisdiction": {
+                    "enum": [
+                      "KR",
+                      "US",
+                      "CA",
+                      "ALL"
+                    ],
+                    "default": "KR"
+                  },
+                  "sourceKind": {
+                    "enum": [
+                      "official_guidance",
+                      "law",
+                      "foreign_typology",
+                      "bank_internal_policy",
+                      null
+                    ]
+                  },
+                  "legalAsOf": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Requires verified legal validity interval; fails closed when unavailable."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Primary hits are the best original chunk per source/version/section. topK counts these groups. supportingChunks preserves up to two additional original passages per group with their own IDs/hashes/locators. Status matched is not semantic answerability; known missing policy/customer/pricing/law sources abstain."
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "413": {
+            "description": "Body exceeds 2MB"
+          }
+        }
+      }
+    },
+    "/v1/rag/context": {
+      "post": {
+        "operationId": "build_evidence_context",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified report facts, evidence transaction IDs, retrieved citations, scope and contextId"
+          },
+          "400": {
+            "description": "Malformed graph, truth leakage, altered rule evidence or invalid query"
+          },
+          "413": {
+            "description": "Body exceeds 2MB"
+          }
+        }
+      }
+    },
+    "/v1/rag/validate": {
+      "post": {
+        "operationId": "validate_report_draft",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "graph",
+                  "draft"
+                ],
+                "properties": {
+                  "graph": {
+                    "type": "object"
+                  },
+                  "ruleResult": {
+                    "type": "object"
+                  },
+                  "query": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500
+                  },
+                  "draft": {
+                    "$ref": "#/components/schemas/Draft"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "valid/errors for structured facts and verbatim citations; human review remains required"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "413": {
+            "description": "Body exceeds 2MB"
+          }
+        }
+      }
+    },
+    "/v1/rag/report": {
+      "post": {
+        "operationId": "generate_review_report",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "graph"
+                ],
+                "properties": {
+                  "graph": {
+                    "type": "object"
+                  },
+                  "ruleResult": {
+                    "type": "object"
+                  },
+                  "query": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 500
+                  },
+                  "mode": {
+                    "enum": [
+                      "template",
+                      "openai"
+                    ],
+                    "default": "template"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review-only report JSON, Markdown, observations/fact IDs, citations and structured validation; no final STR submission."
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "503": {
+            "description": "OpenAI not configured, refused, incomplete or invalid response; no silent template fallback."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ContextRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "graph"
+        ],
+        "properties": {
+          "graph": {
+            "type": "object",
+            "description": "Backend label-free Graph JSON 1.0; 1..2000 edges, string amounts, windowStart/asOf, targetTxId"
+          },
+          "ruleResult": {
+            "type": "object",
+            "description": "Optional exact existing rule API result including config; recomputed and verified"
+          },
+          "query": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 500
+          }
+        }
+      },
+      "Draft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contextId",
+          "facts",
+          "citations"
+        ],
+        "properties": {
+          "contextId": {
+            "type": "string"
+          },
+          "facts": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 500,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "factId",
+                "value"
+              ],
+              "properties": {
+                "factId": {
+                  "type": "string"
+                },
+                "value": {}
+              }
+            }
+          },
+          "citations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 50,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "chunkId",
+                "quote"
+              ],
+              "properties": {
+                "chunkId": {
+                  "type": "string"
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

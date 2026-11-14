@@ -43,6 +43,11 @@ data/import/
 *.pt
 neo4j-data/
 neo4j-import/
+.tools/
+data/demo/
+data/evaluation/
+artifacts/
+data/rag/
 
 # ===== OS =====
 .DS_Store

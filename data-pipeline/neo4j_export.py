@@ -24,7 +24,7 @@ ACCOUNT_HEADER = ["accountKey:ID(Account)", "bankId:int", "accountNumber", "bank
 TRANSFER_HEADER = ["txId", "timestamp:localdatetime", ":START_ID(Account)", ":END_ID(Account)",
                    "amountPaid:double", "paymentCurrency", "amountReceived:double", "receivingCurrency",
                    "amountUsd:double", "paymentFormat", "isSelfLoop:boolean", "isLaundering:boolean",
-                   "patternId", "patternType", ":TYPE"]
+                   "patternId", "patternType", "amountPaidExact", "amountReceivedExact", ":TYPE"]
 
 
 def to_bool(flag: str) -> str:
@@ -57,7 +57,8 @@ def export_transfers(src: Path, dst: Path) -> int:
                              row["amountPaid"], row["paymentCurrency"], row["amountReceived"],
                              row["receivingCurrency"], row["amountUsd"], row["paymentFormat"],
                              to_bool(row["isSelfLoop"]), to_bool(row["isLaundering"]),
-                             row["patternId"], row["patternType"], "TRANSFER"])
+                             row["patternId"], row["patternType"], row["amountPaid"],
+                             row["amountReceived"], "TRANSFER"])
             n += 1
     return n
 

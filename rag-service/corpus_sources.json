@@ -1,0 +1,126 @@
+[
+  {
+    "documentId": "kofiu-str",
+    "title": "의심거래보고제도",
+    "url": "https://kofiu.go.kr/kor/policy/amls03.do",
+    "publisher": "금융정보분석원",
+    "jurisdiction": "KR",
+    "sourceKind": "official_guidance",
+    "effectiveDate": null,
+    "sections": [
+      {
+        "heading": "의심거래보고제도의 정의",
+        "end": "우리나라 의심거래 보고제도의 기본체계"
+      },
+      {
+        "heading": "1) 의심거래보고의 대상 및 미보고 시 제재",
+        "end": "2) 의심거래보고의 방법 및 절차"
+      },
+      {
+        "heading": "2) 의심거래보고의 방법 및 절차",
+        "end": "3) 의심거래보고 정보의 법집행기관에 대한 제공"
+      }
+    ]
+  },
+  {
+    "documentId": "kofiu-ctr",
+    "title": "고액현금거래보고제도",
+    "url": "https://www.kofiu.go.kr/kor/policy/amls04.do",
+    "publisher": "금융정보분석원",
+    "jurisdiction": "KR",
+    "sourceKind": "official_guidance",
+    "effectiveDate": null,
+    "sections": [
+      {
+        "heading": "고액현금거래보고제도의 개념",
+        "end": "도입목적"
+      }
+    ]
+  },
+  {
+    "documentId": "kofiu-cdd",
+    "title": "고객확인제도",
+    "url": "https://www.kofiu.go.kr/kor/policy/amls05.do",
+    "publisher": "금융정보분석원",
+    "jurisdiction": "KR",
+    "sourceKind": "official_guidance",
+    "effectiveDate": null,
+    "sections": [
+      {
+        "heading": "고객확인제도의 개념",
+        "end": "실명확인제도와 고객확인제도 비교"
+      },
+      {
+        "heading": "고객확인의 대상",
+        "end": "만족도조사"
+      }
+    ]
+  },
+  {
+    "documentId": "fincen-funnel",
+    "title": "Funnel Accounts and Trade-Based Money Laundering FIN-2014-A005",
+    "url": "https://www.fincen.gov/resources/advisories/fincen-advisory-fin-2014-a005",
+    "publisher": "US Treasury FinCEN",
+    "jurisdiction": "US",
+    "sourceKind": "foreign_typology",
+    "effectiveDate": null,
+    "publishedDate": "2014-05-28",
+    "version": "FIN-2014-A005",
+    "applicability": "Historical US advisory for typology reference; not Korean reporting thresholds or proof of crime.",
+    "requiredText": [
+      "FIN-2014-A005",
+      "May 28, 2014"
+    ],
+    "sections": [
+      {
+        "heading": "Funnel Account:",
+        "end": "Background"
+      },
+      {
+        "heading": "Funnel Accounts and Trade-Based Money Laundering Red Flags",
+        "end": "FinCEN Guidance to U.S. Financial Institutions"
+      },
+      {
+        "heading": "FinCEN Guidance to U.S. Financial Institutions",
+        "end": "Financial institutions are encouraged"
+      }
+    ]
+  },
+  {
+    "documentId": "fintrac-financial",
+    "title": "Money laundering and terrorist financing indicators—Financial entities",
+    "url": "https://fintrac-canafe.canada.ca/guidance-directives/transaction-operation/indicators-indicateurs/fin_mltf-eng",
+    "publisher": "FINTRAC Canada",
+    "jurisdiction": "CA",
+    "sourceKind": "foreign_typology",
+    "effectiveDate": null,
+    "modifiedDate": "2025-11-24",
+    "version": "page-modified-2025-11-24",
+    "applicability": "Canadian indicators as foreign typology reference; not Korean legal obligations.",
+    "requiredText": [
+      "Date Modified: 2025-11-24"
+    ],
+    "sections": [
+      {
+        "heading": "Important considerations",
+        "end": "General ML/TF indicators",
+        "occurrence": "last"
+      },
+      {
+        "heading": "ML/TF indicators related to change in account activity",
+        "end": "ML/TF indicators based on atypical transactional activity",
+        "occurrence": "last"
+      },
+      {
+        "heading": "ML/TF indicators related to transactions structured below the reporting or identification requirements",
+        "end": "ML/TF indicators involving wire transfers (including electronic funds transfers)",
+        "occurrence": "last"
+      },
+      {
+        "heading": "ML/TF indicators involving wire transfers (including electronic funds transfers)",
+        "end": "ML/TF indicators related to transactions that involve non-Canadian jurisdictions",
+        "occurrence": "last"
+      }
+    ]
+  }
+]

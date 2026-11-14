@@ -8,6 +8,17 @@ Dockerfile text eol=lf
 *.yml      text eol=lf
 *.yaml     text eol=lf
 
+# Python 소스·평가 질문의 고정 해시를 Windows/Linux에서 동일하게 유지한다.
+*.py           text eol=lf
+*.json         text eol=lf
+*.md           text eol=lf
+.gitignore     text eol=lf
+.gitattributes text eol=lf
+.env.example   text eol=lf
+
+# Frozen question snapshots must retain their exact recorded bytes/hashes.
+rag-service/evaluation_queries*.json -text -eol whitespace=cr-at-eol
+
 # Windows 전용 스크립트는 CRLF
 *.bat      text eol=crlf
 *.cmd      text eol=crlf

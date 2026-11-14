@@ -50,6 +50,11 @@ class Neo4jExportTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             ne.to_bool("yes")
 
+    def test_original_amount_strings_are_preserved(self):
+        header, *data = self.rows("transfers.csv")
+        self.assertEqual(data[0][header.index("amountPaidExact")], "3697.34")
+        self.assertEqual(data[1][header.index("amountReceivedExact")], "85.34")
+
 
 if __name__ == "__main__":
     unittest.main()

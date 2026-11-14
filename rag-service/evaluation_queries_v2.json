@@ -1,0 +1,188 @@
+[
+  {
+    "id": "STR-01",
+    "query": "의심거래보고 STR이란 무엇인가",
+    "relevantSections": [
+      "kofiu-str|의심거래보고제도의 정의"
+    ]
+  },
+  {
+    "id": "STR-02",
+    "query": "의심거래를 보고해야 하는 합당한 근거",
+    "relevantSections": [
+      "kofiu-str|의심거래보고제도의 정의"
+    ]
+  },
+  {
+    "id": "STR-03",
+    "query": "보고책임자가 보고서에 기재하는 자료의 종류와 거래상대방",
+    "relevantSections": [
+      "kofiu-str|2) 의심거래보고의 방법 및 절차"
+    ]
+  },
+  {
+    "id": "STR-04",
+    "query": "영업점 직원의 직업 사업내용 평소 거래상황 확인 절차",
+    "relevantSections": [
+      "kofiu-str|2) 의심거래보고의 방법 및 절차"
+    ]
+  },
+  {
+    "id": "CTR-01",
+    "query": "고액현금거래보고 CTR과 STR의 차이",
+    "relevantSections": [
+      "kofiu-ctr|고액현금거래보고제도의 개념"
+    ]
+  },
+  {
+    "id": "CTR-02",
+    "query": "같은 금융회사 동일인 하루 현금 입출금 1천만원",
+    "relevantSections": [
+      "kofiu-ctr|고액현금거래보고제도의 개념"
+    ]
+  },
+  {
+    "id": "CDD-01",
+    "query": "고객확인 CDD에서 실제 소유자 거래 목적 자금 원천을 확인하는 이유",
+    "relevantSections": [
+      "kofiu-cdd|고객확인제도의 개념"
+    ]
+  },
+  {
+    "id": "CDD-02",
+    "query": "고객이 신원 정보 제공을 거부하면 신규 거래를 거절하는가",
+    "relevantSections": [
+      "kofiu-cdd|고객확인제도의 개념"
+    ]
+  },
+  {
+    "id": "CDD-03",
+    "query": "계좌 신규 개설과 일회성 금융거래 고객확인 대상",
+    "relevantSections": [
+      "kofiu-cdd|고객확인의 대상"
+    ]
+  },
+  {
+    "id": "FOREIGN-01",
+    "query": "funnel account cash deposits withdrawn little time",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fincen-funnel|Funnel Account:"
+    ]
+  },
+  {
+    "id": "FOREIGN-02",
+    "query": "funnel accounts red flags cash deposits different geographic region",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fincen-funnel|Funnel Accounts and Trade-Based Money Laundering Red Flags"
+    ]
+  },
+  {
+    "id": "FOREIGN-03",
+    "query": "No one activity by itself is a clear indication of trade based money laundering",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fincen-funnel|FinCEN Guidance to U.S. Financial Institutions"
+    ]
+  },
+  {
+    "id": "FOREIGN-04",
+    "query": "집금 계좌 funnel account 의미",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fincen-funnel|Funnel Account:"
+    ]
+  },
+  {
+    "id": "FOREIGN-05",
+    "query": "transactions structured below reporting identification thresholds deposits",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fintrac-financial|ML/TF indicators related to transactions structured below the reporting or identification requirements"
+    ]
+  },
+  {
+    "id": "FOREIGN-06",
+    "query": "unrelated parties electronic transfers same beneficiary",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fintrac-financial|ML/TF indicators involving wire transfers (including electronic funds transfers)"
+    ]
+  },
+  {
+    "id": "FOREIGN-07",
+    "query": "multiple beneficiaries wire transfers expected use account",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fintrac-financial|ML/TF indicators involving wire transfers (including electronic funds transfers)"
+    ]
+  },
+  {
+    "id": "FOREIGN-08",
+    "query": "dormant account sudden activity transactions",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fintrac-financial|ML/TF indicators related to change in account activity"
+    ]
+  },
+  {
+    "id": "FOREIGN-09",
+    "query": "single indicator suspicious additional facts context assessment",
+    "jurisdiction": "ALL",
+    "sourceKind": "foreign_typology",
+    "relevantSections": [
+      "fintrac-financial|Important considerations",
+      "fincen-funnel|FinCEN Guidance to U.S. Financial Institutions"
+    ]
+  },
+  {
+    "id": "NONE-01",
+    "query": "화성 표면의 평균 온도와 대기압",
+    "relevantSections": []
+  },
+  {
+    "id": "NONE-02",
+    "query": "광합성 엽록체의 전자 전달 과정",
+    "relevantSections": []
+  },
+  {
+    "id": "SCOPE-01",
+    "query": "KB국민은행 내부 룰 점수 70점의 의심거래보고 기준",
+    "relevantSections": []
+  },
+  {
+    "id": "SCOPE-02",
+    "query": "은행 내규상 자금세탁 점수 승인 기준",
+    "relevantSections": []
+  },
+  {
+    "id": "SCOPE-03",
+    "query": "특정금융정보법 제4조 조문과 시행일",
+    "relevantSections": []
+  },
+  {
+    "id": "SCOPE-04",
+    "query": "STR 보고의 법률 근거",
+    "legalAsOf": "2022-09-01",
+    "relevantSections": []
+  },
+  {
+    "id": "SCOPE-05",
+    "query": "룰 점수 90점이면 자금세탁으로 확정 보고해야 하나",
+    "relevantSections": []
+  },
+  {
+    "id": "SCOPE-06",
+    "query": "모델 확률 80퍼센트면 STR 신고 의무인가",
+    "relevantSections": []
+  }
+]

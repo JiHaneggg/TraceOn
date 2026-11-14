@@ -1,0 +1,13 @@
+{
+  "status": "research_candidate_not_promoted",
+  "config": {
+    "min_counterparties": 3,
+    "window_minutes": 10080,
+    "max_cycle_hops": 4,
+    "threshold": 65,
+    "fan_in_min_counterparties": 2,
+    "fan_out_min_counterparties": 12
+  },
+  "frozenSha256": "e8013c8f718cd6156629be0ad98b835f3d45ad067d6b8509960eb56739be4064",
+  "holdoutTargetMet": false
+}

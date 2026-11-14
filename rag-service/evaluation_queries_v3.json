@@ -1,0 +1,606 @@
+{
+  "schemaVersion": "3.0",
+  "kind": "hand_authored_development_and_fixed_verification_not_independent_benchmark",
+  "corpusSha256": "a811aa50fffe640332a25843af96b1ba39ba77aada9a3020b20acf8693c51263",
+  "topK": 3,
+  "sections": {
+    "str-def": {
+      "documentId": "kofiu-str",
+      "section": "의심거래보고제도의 정의"
+    },
+    "str-duty": {
+      "documentId": "kofiu-str",
+      "section": "1) 의심거래보고의 대상 및 미보고 시 제재"
+    },
+    "str-procedure": {
+      "documentId": "kofiu-str",
+      "section": "2) 의심거래보고의 방법 및 절차"
+    },
+    "ctr": {
+      "documentId": "kofiu-ctr",
+      "section": "고액현금거래보고제도의 개념"
+    },
+    "cdd-concept": {
+      "documentId": "kofiu-cdd",
+      "section": "고객확인제도의 개념"
+    },
+    "cdd-targets": {
+      "documentId": "kofiu-cdd",
+      "section": "고객확인의 대상"
+    },
+    "funnel-def": {
+      "documentId": "fincen-funnel",
+      "section": "Funnel Account:"
+    },
+    "funnel-warning": {
+      "documentId": "fincen-funnel",
+      "section": "FinCEN Guidance to U.S. Financial Institutions"
+    },
+    "ca-context": {
+      "documentId": "fintrac-financial",
+      "section": "Important considerations"
+    },
+    "ca-activity": {
+      "documentId": "fintrac-financial",
+      "section": "ML/TF indicators related to change in account activity"
+    },
+    "ca-wire": {
+      "documentId": "fintrac-financial",
+      "section": "ML/TF indicators involving wire transfers (including electronic funds transfers)"
+    }
+  },
+  "annotationPolicy": "Exact quote anchors identify required evidence; absence of other labels does not establish irrelevance. Not semantic entailment or legal advice. Both question splits fixed before comparison; verification is not used to tune.",
+  "cases": [
+    {
+      "id": "DEVELOPMENT-01",
+      "split": "development",
+      "category": "paraphrase",
+      "query": "수수한 재산이 불법재산이라고 의심되는 합당한 근거가 있으면 어디에 보고하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-def",
+          "quote": "금융정보분석원장에게 보고"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-02",
+      "split": "development",
+      "category": "paraphrase",
+      "query": "STR은 어떤 경우에 하는 의심거래 보고인가요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-def",
+          "quote": "의심되는 합당한 근거"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-03",
+      "split": "development",
+      "category": "paraphrase",
+      "query": "영업점 직원은 고객의 직업과 평소 거래상황을 고려하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-procedure",
+          "quote": "평소 거래상황, 직업, 사업내용"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-04",
+      "split": "development",
+      "category": "paraphrase",
+      "query": "의심스러운 거래보고서에 보고기관과 거래상대방 외에 무엇을 기재하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-procedure",
+          "quote": "보존하는 자료의 종류"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-05",
+      "split": "development",
+      "category": "paraphrase",
+      "query": "고객이 신원 정보 제공을 거부해 고객확인이 안 되면 신규 거래를 거절하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-concept",
+          "quote": "신규 거래를 거절"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-06",
+      "split": "development",
+      "category": "paraphrase",
+      "query": "실제 소유자와 거래 목적 및 자금 원천을 알아보는 고객확인의 의미",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-concept",
+          "quote": "실제 소유자, 거래의 목적, 자금의 원천"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-07",
+      "split": "development",
+      "category": "paraphrase",
+      "query": "새 계좌를 만들거나 일회성 금융거래를 할 때 신원을 확인하는 대상",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-targets",
+          "quote": "계좌의 신규개설이나 일정 금액 이상의 일회성 금융거래"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-08",
+      "split": "development",
+      "category": "paraphrase",
+      "query": "고위험 고객의 강화된 고객확인 EDD가 추가 확인하는 사항",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-targets",
+          "quote": "금융거래 목적 및 거래자금의 원천"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-09",
+      "split": "development",
+      "category": "str_ctr_confusion",
+      "query": "STR과 CTR 중 합당한 의심 사유와 객관적인 현금 기준은 각각 어떤 제도인가요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-def",
+          "quote": "의심되는 합당한 근거"
+        },
+        {
+          "sectionId": "ctr",
+          "quote": "객관적 사실을 전산으로 자동 보고"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-10",
+      "split": "development",
+      "category": "str_ctr_confusion",
+      "query": "고액현금거래보고와 의심거래보고를 왜 구분하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "ctr",
+          "quote": "STR)와는 구별"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-11",
+      "split": "development",
+      "category": "str_ctr_confusion",
+      "query": "CTR 기준은 같은 금융회사에서 같은 사람이 하루 동안 거래한 현금인가요",
+      "requiredEvidence": [
+        {
+          "sectionId": "ctr",
+          "quote": "동일 금융회사에서 동일인의 명의로 1거래일 동안"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-12",
+      "split": "development",
+      "category": "multi_evidence",
+      "query": "STR은 누가 받으며 영업점 직원은 누구에게 먼저 보고하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-def",
+          "quote": "금융정보분석원장에게 보고"
+        },
+        {
+          "sectionId": "str-procedure",
+          "quote": "보고책임자에게 보고"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-13",
+      "split": "development",
+      "category": "multi_evidence",
+      "query": "계좌 신규개설 고객확인 대상과 고위험 고객의 강화된 확인 내용을 함께 알려주세요",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-targets",
+          "quote": "계좌의 신규 개설"
+        },
+        {
+          "sectionId": "cdd-targets",
+          "quote": "금융거래 목적 및 거래자금의 원천"
+        }
+      ]
+    },
+    {
+      "id": "DEVELOPMENT-14",
+      "split": "development",
+      "category": "foreign_korean",
+      "query": "집금 funnel account는 입금과 출금 사이 시간이 짧은 계좌인가요",
+      "requiredEvidence": [
+        {
+          "sectionId": "funnel-def",
+          "quote": "little time elapsing"
+        }
+      ],
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    {
+      "id": "DEVELOPMENT-15",
+      "split": "development",
+      "category": "foreign_korean",
+      "query": "inactive account가 갑자기 deposits나 wire transfers를 시작하면 어떤 징후인가요",
+      "requiredEvidence": [
+        {
+          "sectionId": "ca-activity",
+          "quote": "An inactive account begins to see financial activity"
+        }
+      ],
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    {
+      "id": "DEVELOPMENT-16",
+      "split": "development",
+      "category": "multi_source",
+      "query": "single indicator와 facts context를 함께 평가해야 한다는 두 해외 기관의 유의사항",
+      "requiredEvidence": [
+        {
+          "sectionId": "ca-context",
+          "quote": "Additional facts or context"
+        },
+        {
+          "sectionId": "funnel-warning",
+          "quote": "No one activity by itself"
+        }
+      ],
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    {
+      "id": "DEVELOPMENT-17",
+      "split": "development",
+      "category": "unsupported_policy",
+      "query": "KB국민은행 내부 보고 승인 기준과 룰 점수표를 알려주세요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "DEVELOPMENT-18",
+      "split": "development",
+      "category": "unsupported_policy",
+      "query": "은행 내규상 STR 보고책임자의 결재 단계는 몇 단계인가요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "DEVELOPMENT-19",
+      "split": "development",
+      "category": "unsupported_score",
+      "query": "룰 점수 85점이면 자금세탁으로 확정 보고해야 하나요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "DEVELOPMENT-20",
+      "split": "development",
+      "category": "unsupported_law",
+      "query": "특정금융정보법 제4조 조문 전문을 알려주세요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "DEVELOPMENT-21",
+      "split": "development",
+      "category": "unrelated",
+      "query": "목성 위성의 공전 주기와 표면 중력",
+      "requiredEvidence": []
+    },
+    {
+      "id": "DEVELOPMENT-22",
+      "split": "development",
+      "category": "unrelated",
+      "query": "이진 탐색 트리의 회전 연산과 시간 복잡도",
+      "requiredEvidence": []
+    },
+    {
+      "id": "DEVELOPMENT-23",
+      "split": "development",
+      "category": "unsupported_customer",
+      "query": "김철수 고객의 직업과 주소를 알려주세요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "DEVELOPMENT-24",
+      "split": "development",
+      "category": "unsupported_product",
+      "query": "국민은행 계좌의 오늘 적용되는 예금 이자율은 얼마인가요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "VERIFICATION-01",
+      "split": "verification",
+      "category": "paraphrase",
+      "query": "금융회사가 불법재산 의심의 합당한 근거를 바탕으로 FIU에 알리는 제도는",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-def",
+          "quote": "의심되는 합당한 근거"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-02",
+      "split": "verification",
+      "category": "paraphrase",
+      "query": "현장에서 의심거래를 발견한 직원은 평소 고객의 사업내용도 보나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-procedure",
+          "quote": "평소 거래상황, 직업, 사업내용"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-03",
+      "split": "verification",
+      "category": "paraphrase",
+      "query": "긴급한 의심거래는 우선 전화나 FAX로 보고하고 추후 보완할 수 있나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-procedure",
+          "quote": "우선 전화나 FAX로 보고하고 추후 보완"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-04",
+      "split": "verification",
+      "category": "paraphrase",
+      "query": "고객확인용 정보를 거부한 기존 고객과의 거래관계는 어떻게 하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-concept",
+          "quote": "해당 거래를 종료"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-05",
+      "split": "verification",
+      "category": "paraphrase",
+      "query": "법인 고객의 실제 소유자를 찾지 못하면 대표자를 확인하는 단계가 있나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-targets",
+          "quote": "법인 또는 단체의 대표자에 관한 사항"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-06",
+      "split": "verification",
+      "category": "paraphrase",
+      "query": "자금세탁 위험이 높은 거래는 EDD로 거래자금의 원천을 더 확인하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-targets",
+          "quote": "금융거래 목적 및 거래자금의 원천"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-07",
+      "split": "verification",
+      "category": "str_ctr_confusion",
+      "query": "의심스러운 합당한 사유를 적는 STR과 전산 자동 보고하는 CTR의 차이",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-def",
+          "quote": "의심되는 합당한 근거"
+        },
+        {
+          "sectionId": "ctr",
+          "quote": "객관적 사실을 전산으로 자동 보고"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-08",
+      "split": "verification",
+      "category": "str_ctr_confusion",
+      "query": "한 거래일 현금 입출금 1천만원을 기준으로 하는 것은 CTR인가요",
+      "requiredEvidence": [
+        {
+          "sectionId": "ctr",
+          "quote": "1천만원 이상의 현금"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-09",
+      "split": "verification",
+      "category": "str_ctr_confusion",
+      "query": "CTR 설명에서 동일인의 명의와 동일 금융회사라는 조건은 무엇인가요",
+      "requiredEvidence": [
+        {
+          "sectionId": "ctr",
+          "quote": "동일 금융회사에서 동일인의 명의로 1거래일 동안"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-10",
+      "split": "verification",
+      "category": "multi_evidence",
+      "query": "CDD가 확인하는 실제 소유자 자금 원천과 STR 보고서에 적는 의심 근거 자료를 함께 찾아주세요",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-concept",
+          "quote": "실제 소유자, 거래의 목적, 자금의 원천"
+        },
+        {
+          "sectionId": "str-procedure",
+          "quote": "보존하는 자료의 종류"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-11",
+      "split": "verification",
+      "category": "multi_evidence",
+      "query": "무통장입금 등 일회성 금융거래의 예와 법인 실소유자 확인 순서를 함께 찾아주세요",
+      "requiredEvidence": [
+        {
+          "sectionId": "cdd-targets",
+          "quote": "무통장입금(송금), 외화송금 및 환전"
+        },
+        {
+          "sectionId": "cdd-targets",
+          "quote": "법인 또는 단체의 대표자에 관한 사항"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-12",
+      "split": "verification",
+      "category": "multi_evidence",
+      "query": "STR을 할 합당한 의심 근거와 보고서 작성 방법 절차를 함께 찾아주세요",
+      "requiredEvidence": [
+        {
+          "sectionId": "str-def",
+          "quote": "의심되는 합당한 근거"
+        },
+        {
+          "sectionId": "str-procedure",
+          "quote": "보존하는 자료의 종류"
+        }
+      ]
+    },
+    {
+      "id": "VERIFICATION-13",
+      "split": "verification",
+      "category": "foreign_korean",
+      "query": "서로 관계없는 여러 사람이 한 수취인에게 전자 송금하는 징후",
+      "requiredEvidence": [
+        {
+          "sectionId": "ca-wire",
+          "quote": "same recipient"
+        }
+      ],
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    {
+      "id": "VERIFICATION-14",
+      "split": "verification",
+      "category": "foreign_korean",
+      "query": "분산 multiple beneficiaries wire transfers가 평소 계좌 사용 목적과 맞지 않는 징후",
+      "requiredEvidence": [
+        {
+          "sectionId": "ca-wire",
+          "quote": "do not correspond to the expected use"
+        }
+      ],
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    {
+      "id": "VERIFICATION-15",
+      "split": "verification",
+      "category": "foreign_korean",
+      "query": "단일 징후만으로 범죄를 확정하지 않고 사실과 맥락을 함께 보아야 하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "ca-context",
+          "quote": "Additional facts or context"
+        },
+        {
+          "sectionId": "funnel-warning",
+          "quote": "No one activity by itself"
+        }
+      ],
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    {
+      "id": "VERIFICATION-16",
+      "split": "verification",
+      "category": "multi_source",
+      "query": "FinCEN과 FINTRAC은 single activity single indicator additional facts context를 어떻게 설명하나요",
+      "requiredEvidence": [
+        {
+          "sectionId": "ca-context",
+          "quote": "Additional facts or context"
+        },
+        {
+          "sectionId": "funnel-warning",
+          "quote": "No one activity by itself"
+        }
+      ],
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    {
+      "id": "VERIFICATION-17",
+      "split": "verification",
+      "category": "unsupported_policy",
+      "query": "KB 내부 AML 스코어별 의심거래 승인 규정을 알려주세요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "VERIFICATION-18",
+      "split": "verification",
+      "category": "unsupported_policy",
+      "query": "국민은행 내규에서 STR를 승인하는 담당자의 이름은 누구인가요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "VERIFICATION-19",
+      "split": "verification",
+      "category": "unsupported_law",
+      "query": "현재 시행령의 고액현금거래보고 조문 전체를 보여주세요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "VERIFICATION-20",
+      "split": "verification",
+      "category": "unsupported_law",
+      "query": "2022년 기준 STR 보고 법률 근거를 찾아주세요",
+      "requiredEvidence": [],
+      "legalAsOf": "2022-09-01"
+    },
+    {
+      "id": "VERIFICATION-21",
+      "split": "verification",
+      "category": "unrelated",
+      "query": "엽록체의 틸라코이드 막에서 광합성하는 과정",
+      "requiredEvidence": []
+    },
+    {
+      "id": "VERIFICATION-22",
+      "split": "verification",
+      "category": "unrelated",
+      "query": "파이썬 비동기 함수의 이벤트 루프 예제",
+      "requiredEvidence": []
+    },
+    {
+      "id": "VERIFICATION-23",
+      "split": "verification",
+      "category": "unsupported_customer",
+      "query": "TX-000619283 송금인의 직업과 실제 소유자 이름을 알려주세요",
+      "requiredEvidence": []
+    },
+    {
+      "id": "VERIFICATION-24",
+      "split": "verification",
+      "category": "unsupported_product",
+      "query": "고객확인 자료를 제출하면 대출 금리가 몇 퍼센트 할인되나요",
+      "requiredEvidence": []
+    }
+  ]
+}

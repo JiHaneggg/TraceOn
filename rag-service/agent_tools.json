@@ -1,0 +1,127 @@
+[
+  {
+    "type": "function",
+    "name": "search_regulations",
+    "description": "공식 안내 자료를 검색하고 원문 URL, 절, 해시, chunkId를 받습니다. 검색 일치는 위반 판정이 아닙니다.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "query": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 500
+        },
+        "topK": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8
+        },
+        "jurisdiction": {
+          "type": "string",
+          "enum": [
+            "KR",
+            "US",
+            "CA",
+            "ALL"
+          ]
+        },
+        "sourceKind": {
+          "type": "string",
+          "enum": [
+            "official_guidance",
+            "law",
+            "foreign_typology",
+            "bank_internal_policy"
+          ]
+        },
+        "legalAsOf": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "type": "function",
+    "name": "build_evidence_context",
+    "description": "Spring에서 받은 라벨 없는 Graph JSON과 룰 결과를 검증하고 보고서용 사실·문서 근거를 만듭니다. DB 조회나 임의 Cypher 실행 기능은 없습니다.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "graph": {
+          "type": "object"
+        },
+        "ruleResult": {
+          "type": "object"
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "graph"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "type": "function",
+    "name": "validate_report_draft",
+    "description": "숫자 등 구조화 사실과 원문 인용을 검증합니다. 자유 문장 의미의 검증과 최종 보고 결정은 사람 검토가 필요합니다.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "graph": {
+          "type": "object"
+        },
+        "ruleResult": {
+          "type": "object"
+        },
+        "query": {
+          "type": "string"
+        },
+        "draft": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "graph",
+        "draft"
+      ],
+      "additionalProperties": false
+    }
+  },
+  {
+    "type": "function",
+    "name": "generate_review_report",
+    "description": "Verified context to human-review report. Default template mode calls no LLM. Explicit openai mode requires server configuration and restricts the model to selecting provided IDs.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "graph"
+      ],
+      "properties": {
+        "graph": {
+          "type": "object"
+        },
+        "ruleResult": {
+          "type": "object"
+        },
+        "query": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "template",
+            "openai"
+          ]
+        }
+      }
+    }
+  }
+]
