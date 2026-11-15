@@ -1,0 +1,230 @@
+[
+  {
+    "documentId": "kofiu-str",
+    "title": "의심거래보고제도",
+    "url": "https://kofiu.go.kr/kor/policy/amls03.do",
+    "publisher": "금융정보분석원",
+    "jurisdiction": "KR",
+    "sourceKind": "official_guidance",
+    "effectiveDate": null,
+    "sections": [
+      {
+        "heading": "의심거래보고제도의 정의",
+        "end": "우리나라 의심거래 보고제도의 기본체계"
+      },
+      {
+        "heading": "1) 의심거래보고의 대상 및 미보고 시 제재",
+        "end": "2) 의심거래보고의 방법 및 절차"
+      },
+      {
+        "heading": "2) 의심거래보고의 방법 및 절차",
+        "end": "3) 의심거래보고 정보의 법집행기관에 대한 제공"
+      }
+    ]
+  },
+  {
+    "documentId": "kofiu-ctr",
+    "title": "고액현금거래보고제도",
+    "url": "https://www.kofiu.go.kr/kor/policy/amls04.do",
+    "publisher": "금융정보분석원",
+    "jurisdiction": "KR",
+    "sourceKind": "official_guidance",
+    "effectiveDate": null,
+    "sections": [
+      {
+        "heading": "고액현금거래보고제도의 개념",
+        "end": "도입목적"
+      }
+    ]
+  },
+  {
+    "documentId": "kofiu-cdd",
+    "title": "고객확인제도",
+    "url": "https://www.kofiu.go.kr/kor/policy/amls05.do",
+    "publisher": "금융정보분석원",
+    "jurisdiction": "KR",
+    "sourceKind": "official_guidance",
+    "effectiveDate": null,
+    "sections": [
+      {
+        "heading": "고객확인제도의 개념",
+        "end": "실명확인제도와 고객확인제도 비교"
+      },
+      {
+        "heading": "고객확인의 대상",
+        "end": "만족도조사"
+      }
+    ]
+  },
+  {
+    "documentId": "fincen-funnel",
+    "title": "Funnel Accounts and Trade-Based Money Laundering FIN-2014-A005",
+    "url": "https://www.fincen.gov/resources/advisories/fincen-advisory-fin-2014-a005",
+    "publisher": "US Treasury FinCEN",
+    "jurisdiction": "US",
+    "sourceKind": "foreign_typology",
+    "effectiveDate": null,
+    "publishedDate": "2014-05-28",
+    "version": "FIN-2014-A005",
+    "applicability": "Historical US advisory for typology reference; not Korean reporting thresholds or proof of crime.",
+    "requiredText": [
+      "FIN-2014-A005",
+      "May 28, 2014"
+    ],
+    "sections": [
+      {
+        "heading": "Funnel Account:",
+        "end": "Background"
+      },
+      {
+        "heading": "Funnel Accounts and Trade-Based Money Laundering Red Flags",
+        "end": "FinCEN Guidance to U.S. Financial Institutions"
+      },
+      {
+        "heading": "FinCEN Guidance to U.S. Financial Institutions",
+        "end": "Financial institutions are encouraged"
+      }
+    ]
+  },
+  {
+    "documentId": "fintrac-financial",
+    "title": "Money laundering and terrorist financing indicators—Financial entities",
+    "url": "https://fintrac-canafe.canada.ca/guidance-directives/transaction-operation/indicators-indicateurs/fin_mltf-eng",
+    "publisher": "FINTRAC Canada",
+    "jurisdiction": "CA",
+    "sourceKind": "foreign_typology",
+    "effectiveDate": null,
+    "modifiedDate": "2025-11-24",
+    "version": "page-modified-2025-11-24",
+    "applicability": "Canadian indicators as foreign typology reference; not Korean legal obligations.",
+    "requiredText": [
+      "Date Modified: 2025-11-24"
+    ],
+    "sections": [
+      {
+        "heading": "Important considerations",
+        "end": "General ML/TF indicators",
+        "occurrence": "last"
+      },
+      {
+        "heading": "ML/TF indicators related to change in account activity",
+        "end": "ML/TF indicators based on atypical transactional activity",
+        "occurrence": "last"
+      },
+      {
+        "heading": "ML/TF indicators related to transactions structured below the reporting or identification requirements",
+        "end": "ML/TF indicators involving wire transfers (including electronic funds transfers)",
+        "occurrence": "last"
+      },
+      {
+        "heading": "ML/TF indicators involving wire transfers (including electronic funds transfers)",
+        "end": "ML/TF indicators related to transactions that involve non-Canadian jurisdictions",
+        "occurrence": "last"
+      }
+    ]
+  },
+  {
+    "documentId": "kr-aml-act",
+    "title": "특정 금융거래정보의 보고 및 이용 등에 관한 법률",
+    "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290725&efYd=20261002&chrClsCd=010202",
+    "publisher": "법제처 국가법령정보센터 (소관: 금융위원회·법무부)",
+    "jurisdiction": "KR",
+    "sourceKind": "law",
+    "effectiveDate": "2026-10-02",
+    "publishedDate": "2026-08-04",
+    "version": "법률 제21857호",
+    "validUntil": null,
+    "applicability": "2026-10-02 시행 버전의 선별 조문. 전체 법령·모든 시행 시점의 적용을 보장하지 않으며 거래별 적용은 사람이 검토한다.",
+    "requiredText": [
+      "특정 금융거래정보의 보고 및 이용 등에 관한 법률",
+      "[시행 2026. 10. 2.]",
+      "법률 제21857호"
+    ],
+    "sections": [
+      {
+        "heading": "제4조(불법재산 등으로 의심되는 거래의 보고 등)",
+        "end": "제4조의2(금융회사등의 고액 현금거래 보고)"
+      },
+      {
+        "heading": "제4조의2(금융회사등의 고액 현금거래 보고)",
+        "end": "제5조(금융회사등의 조치 등)"
+      },
+      {
+        "heading": "제5조(금융회사등의 조치 등)",
+        "end": "제5조의2(금융회사등의 고객 확인의무)"
+      },
+      {
+        "heading": "제5조의2(금융회사등의 고객 확인의무)",
+        "end": "제5조의3(전신송금 시 정보제공)"
+      },
+      {
+        "heading": "제5조의3(전신송금 시 정보제공)",
+        "end": "제5조의4(금융회사등의 금융거래등 정보의 보유기간 등)"
+      },
+      {
+        "heading": "제5조의4(금융회사등의 금융거래등 정보의 보유기간 등)",
+        "end": "제6조(적용범위 등)"
+      }
+    ]
+  },
+  {
+    "documentId": "kr-aml-decree",
+    "title": "특정 금융거래정보의 보고 및 이용 등에 관한 법률 시행령",
+    "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290511&efYd=20261002&chrClsCd=010202",
+    "publisher": "법제처 국가법령정보센터 (소관: 금융위원회·법무부)",
+    "jurisdiction": "KR",
+    "sourceKind": "law",
+    "effectiveDate": "2026-10-02",
+    "publishedDate": "2026-09-29",
+    "version": "대통령령 제36728호",
+    "validUntil": null,
+    "applicability": "2026-10-02 시행 버전의 선별 조문. 전체 법령·모든 시행 시점의 적용을 보장하지 않으며 거래별 적용은 사람이 검토한다.",
+    "requiredText": [
+      "특정 금융거래정보의 보고 및 이용 등에 관한 법률 시행령",
+      "[시행 2026. 10. 2.]",
+      "대통령령 제36728호"
+    ],
+    "sections": [
+      {
+        "heading": "제7조(불법재산 등으로 의심되는 거래의 보고 방법)",
+        "end": "제8조(보고대상 금융거래등의 참고유형 제공)"
+      },
+      {
+        "heading": "제8조(보고대상 금융거래등의 참고유형 제공)",
+        "end": "제8조의2(고액현금거래 보고의 기준금액)"
+      },
+      {
+        "heading": "제8조의2(고액현금거래 보고의 기준금액)",
+        "end": "제8조의3(현금과 비슷한 기능의 지급수단)"
+      },
+      {
+        "heading": "제10조의4(고객의 신원에 관한 사항)",
+        "end": "제10조의5(실제 소유자에 대한 확인 등)"
+      },
+      {
+        "heading": "제10조의5(실제 소유자에 대한 확인 등)",
+        "end": "제10조의6(고객확인의 절차 등)"
+      }
+    ]
+  },
+  {
+    "documentId": "kofiu-aml-overview",
+    "title": "자금세탁방지제도",
+    "url": "https://www.kofiu.go.kr/kor/policy/amls01.do",
+    "publisher": "금융정보분석원",
+    "jurisdiction": "KR",
+    "sourceKind": "official_guidance",
+    "effectiveDate": null,
+    "applicability": "제도 개요 안내 자료. 법령 원문이나 은행 내규를 대체하지 않는다.",
+    "sections": [
+      {
+        "heading": "자금세탁방지란?",
+        "end": "KoFIU 및 자금세탁방지제도 체계"
+      },
+      {
+        "heading": "KoFIU 및 자금세탁방지제도 체계",
+        "end": "만족도조사"
+      }
+    ]
+  }
+]

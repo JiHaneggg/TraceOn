@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: traceon
+
+  # 로컬 실행(bootRun) 시 저장소 루트의 .env를 읽는다. 파일이 없으면 무시한다.
+  # OS 환경변수(docker compose가 주입한 값)가 이 파일보다 우선한다.
+  config:
+    import: optional:file:../.env[.properties]
+
+  # Neo4j 접속 정보는 환경변수로 받는다. 값은 루트 .env 또는 docker-compose가 주입한다.
+  neo4j:
+    uri: ${NEO4J_URI:bolt://localhost:7687}
+    authentication:
+      username: ${NEO4J_USER:neo4j}
+      password: ${NEO4J_PASSWORD:}
+  data:
+    neo4j:
+      database: ${NEO4J_DATABASE:neo4j}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      # 개발 단계: Neo4j 연결 상태 등 상세 정보를 노출한다. 배포 시 when-authorized로 변경.
+      show-details: always

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": "1.0",
+  "policyId": "traceon-evidence-fit-v1",
+  "reviewStatus": "developer_curated_pending_domain_review",
+  "references": {
+    "str-context": {
+      "chunkId": "kr-aml-act:7e618584cf959134b213",
+      "documentId": "kr-aml-act",
+      "section": "제4조(불법재산 등으로 의심되는 거래의 보고 등)",
+      "sourceSha256": "cfadab8293d0b0c643075226ae4f0c94dc72c53e00b04de14e5ddee184da3e87",
+      "textSha256": "5d3ed3a012965a43fe1e6bc856efe9ec0b26dfe8fd94e6cfe0fefcf5358313de",
+      "jurisdiction": "KR",
+      "sourceKind": "law",
+      "quote": "그 의심되는 합당한 근거를 분명하게 밝혀야 한다.",
+      "quoteSha256": "d17571700e03f4930ca9059c682e02762e26108e75a5b38b88caf460b648344f"
+    },
+    "cdd-context": {
+      "chunkId": "kr-aml-act:19a26659faaec1dca29b",
+      "documentId": "kr-aml-act",
+      "section": "제5조의2(금융회사등의 고객 확인의무)",
+      "sourceSha256": "cfadab8293d0b0c643075226ae4f0c94dc72c53e00b04de14e5ddee184da3e87",
+      "textSha256": "adeb7726ce20cbec1d1d26d6f062ce7ca85bf0eff0545db623a46d9ff85d0be4",
+      "jurisdiction": "KR",
+      "sourceKind": "law",
+      "quote": "금융거래등의 목적과 거래자금의 원천 등",
+      "quoteSha256": "70e780d058cea00574ccaa54f9d210cfb28f59192bd4ed79f634cdd36d1d8cb5"
+    },
+    "funnel-reference": {
+      "chunkId": "fincen-funnel:8d1c9c280f8c3def3b71",
+      "documentId": "fincen-funnel",
+      "section": "Funnel Account:",
+      "sourceSha256": "338768f6dd3ce1c5a8eff4e4e3fe4a508cfe2329582996c24bd29494df00896b",
+      "textSha256": "8a18cf34657a6f37f8c212bbf41b0f66d283ca59b8d6a13414924782b7584b31",
+      "jurisdiction": "US",
+      "sourceKind": "foreign_typology",
+      "quote": "receives multiple cash deposits",
+      "quoteSha256": "7ec653580e1c6454b730810831a64f58ea5c2cdab0c120567d68f3bf98f334dd"
+    },
+    "wire-reference": {
+      "chunkId": "fintrac-financial:22b45f0320ffd11fed34",
+      "documentId": "fintrac-financial",
+      "section": "ML/TF indicators involving wire transfers (including electronic funds transfers)",
+      "sourceSha256": "64f75299a51c0a628a35cd38c843afd6e26aa02e0ef5bbaf250eb1ec54f600f1",
+      "textSha256": "87226d923c044f45e2c39173b446c4a31efca5f640d3a952c319ce9f7fcbc761",
+      "jurisdiction": "CA",
+      "sourceKind": "foreign_typology",
+      "quote": "Client sending to, or receiving wire transfers from, multiple clients.",
+      "quoteSha256": "930336518228284531750573b4e9b0b78ee5020c7ea8e0d8c31818e8ec0c86b1"
+    }
+  },
+  "rules": {
+    "CYCLE": {
+      "roles": {
+        "reporting_context": [
+          "str-context"
+        ],
+        "due_diligence_context": [
+          "cdd-context"
+        ],
+        "pattern_reference": []
+      },
+      "conditions": [
+        "temporal_cycle",
+        "same_funds",
+        "economic_purpose",
+        "client_identity"
+      ]
+    },
+    "FAN_IN": {
+      "roles": {
+        "reporting_context": [
+          "str-context"
+        ],
+        "due_diligence_context": [
+          "cdd-context"
+        ],
+        "pattern_reference": [
+          "funnel-reference"
+        ]
+      },
+      "conditions": [
+        "multiple_sending_accounts",
+        "cash_format_recorded",
+        "geographic_withdrawal_context",
+        "economic_purpose",
+        "client_identity"
+      ]
+    },
+    "FAN_OUT": {
+      "roles": {
+        "reporting_context": [
+          "str-context"
+        ],
+        "due_diligence_context": [
+          "cdd-context"
+        ],
+        "pattern_reference": [
+          "wire-reference"
+        ]
+      },
+      "conditions": [
+        "multiple_receiving_accounts",
+        "wire_format_recorded",
+        "economic_purpose",
+        "client_identity"
+      ]
+    }
+  },
+  "policySha256": "fe05afb812e980cd9ce32e434174831b0680bd72e429f82b83492c698259d2a9"
+}

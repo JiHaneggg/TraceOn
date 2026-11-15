@@ -1,0 +1,228 @@
+[
+  {
+    "id": "kr-aml-act-0",
+    "request": {
+      "query": "법률 제4조(불법재산 등으로 의심되는 거래의 보고 등)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-act",
+    "section": "제4조(불법재산 등으로 의심되는 거래의 보고 등)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-act-1",
+    "request": {
+      "query": "법률 제4조의2(금융회사등의 고액 현금거래 보고)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-act",
+    "section": "제4조의2(금융회사등의 고액 현금거래 보고)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-act-2",
+    "request": {
+      "query": "법률 제5조(금융회사등의 조치 등)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-act",
+    "section": "제5조(금융회사등의 조치 등)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-act-3",
+    "request": {
+      "query": "법률 제5조의2(금융회사등의 고객 확인의무)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-act",
+    "section": "제5조의2(금융회사등의 고객 확인의무)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-act-4",
+    "request": {
+      "query": "법률 제5조의3(전신송금 시 정보제공)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-act",
+    "section": "제5조의3(전신송금 시 정보제공)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-act-5",
+    "request": {
+      "query": "법률 제5조의4(금융회사등의 금융거래등 정보의 보유기간 등)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-act",
+    "section": "제5조의4(금융회사등의 금융거래등 정보의 보유기간 등)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-decree-0",
+    "request": {
+      "query": "시행령 제7조(불법재산 등으로 의심되는 거래의 보고 방법)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-decree",
+    "section": "제7조(불법재산 등으로 의심되는 거래의 보고 방법)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-decree-1",
+    "request": {
+      "query": "시행령 제8조(보고대상 금융거래등의 참고유형 제공)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-decree",
+    "section": "제8조(보고대상 금융거래등의 참고유형 제공)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-decree-2",
+    "request": {
+      "query": "시행령 제8조의2(고액현금거래 보고의 기준금액)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-decree",
+    "section": "제8조의2(고액현금거래 보고의 기준금액)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-decree-3",
+    "request": {
+      "query": "시행령 제10조의4(고객의 신원에 관한 사항)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-decree",
+    "section": "제10조의4(고객의 신원에 관한 사항)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kr-aml-decree-4",
+    "request": {
+      "query": "시행령 제10조의5(실제 소유자에 대한 확인 등)",
+      "sourceKind": "law"
+    },
+    "documentId": "kr-aml-decree",
+    "section": "제10조의5(실제 소유자에 대한 확인 등)",
+    "category": "domestic_law"
+  },
+  {
+    "id": "kofiu-aml-overview-0",
+    "request": {
+      "query": "자금세탁방지란?",
+      "sourceKind": "official_guidance"
+    },
+    "documentId": "kofiu-aml-overview",
+    "section": "자금세탁방지란?",
+    "category": "domestic_guidance"
+  },
+  {
+    "id": "kofiu-aml-overview-1",
+    "request": {
+      "query": "KoFIU 및 자금세탁방지제도 체계",
+      "sourceKind": "official_guidance"
+    },
+    "documentId": "kofiu-aml-overview",
+    "section": "KoFIU 및 자금세탁방지제도 체계",
+    "category": "domestic_guidance"
+  },
+  {
+    "id": "kofiu-str-classification",
+    "request": {
+      "query": "의심거래보고제도 STR 정의",
+      "sourceKind": "official_guidance"
+    },
+    "documentId": "kofiu-str",
+    "section": "의심거래보고제도의 정의",
+    "category": "domestic_guidance"
+  },
+  {
+    "id": "kofiu-ctr-classification",
+    "request": {
+      "query": "고액현금거래보고 CTR 개념",
+      "sourceKind": "official_guidance"
+    },
+    "documentId": "kofiu-ctr",
+    "section": "고액현금거래보고제도의 개념",
+    "category": "domestic_guidance"
+  },
+  {
+    "id": "kofiu-cdd-classification",
+    "request": {
+      "query": "고객확인 CDD 개념",
+      "sourceKind": "official_guidance"
+    },
+    "documentId": "kofiu-cdd",
+    "section": "고객확인제도의 개념",
+    "category": "domestic_guidance"
+  },
+  {
+    "id": "fincen-funnel-classification",
+    "request": {
+      "query": "funnel account deposits",
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    "documentId": "fincen-funnel",
+    "section": "Funnel Account:",
+    "category": "foreign_reference"
+  },
+  {
+    "id": "fintrac-financial-classification",
+    "request": {
+      "query": "inactive dormant account activity",
+      "jurisdiction": "ALL",
+      "sourceKind": "foreign_typology"
+    },
+    "documentId": "fintrac-financial",
+    "section": "ML/TF indicators related to change in account activity",
+    "category": "foreign_reference"
+  },
+  {
+    "id": "missing-internal",
+    "request": {
+      "query": "KB국민은행 내부 규정 STR 승인 기준"
+    },
+    "abstain": true
+  },
+  {
+    "id": "missing-article",
+    "request": {
+      "query": "법률 제99조 의심거래 보고"
+    },
+    "abstain": true
+  },
+  {
+    "id": "other-law",
+    "request": {
+      "query": "전자금융거래법 제4조 거래 보고"
+    },
+    "abstain": true
+  },
+  {
+    "id": "historical",
+    "request": {
+      "query": "법률 제4조 의심거래 보고",
+      "legalAsOf": "2022-01-01"
+    },
+    "abstain": true
+  },
+  {
+    "id": "future",
+    "request": {
+      "query": "법률 제4조 의심거래 보고",
+      "legalAsOf": "2027-01-01"
+    },
+    "abstain": true
+  },
+  {
+    "id": "customer",
+    "request": {
+      "query": "AC-1001 계좌주의 이름과 실제 소유자를 알려줘"
+    },
+    "abstain": true
+  }
+]

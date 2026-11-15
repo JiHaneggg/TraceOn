@@ -1,0 +1,14 @@
+[
+  {"id":"STR-01","query":"의심거래보고 STR이란 무엇인가","documentId":"kofiu-str","section":"의심거래보고제도의 정의"},
+  {"id":"STR-02","query":"의심거래를 보고해야 하는 합당한 근거","documentId":"kofiu-str"},
+  {"id":"STR-03","query":"보고책임자가 보고서에 기재하는 자료의 종류와 거래상대방","documentId":"kofiu-str","section":"2) 의심거래보고의 방법 및 절차"},
+  {"id":"STR-04","query":"영업점 직원의 직업 사업내용 평소 거래상황 확인 절차","documentId":"kofiu-str","section":"2) 의심거래보고의 방법 및 절차"},
+  {"id":"CTR-01","query":"고액현금거래보고 CTR과 STR의 차이","documentId":"kofiu-ctr"},
+  {"id":"CTR-02","query":"같은 금융회사 동일인 하루 현금 입출금 1천만원","documentId":"kofiu-ctr"},
+  {"id":"CDD-01","query":"고객확인 CDD에서 실제 소유자 거래 목적 자금 원천을 확인하는 이유","documentId":"kofiu-cdd","section":"고객확인제도의 개념"},
+  {"id":"CDD-02","query":"고객이 신원 정보 제공을 거부하면 신규 거래를 거절하는가","documentId":"kofiu-cdd","section":"고객확인제도의 개념"},
+  {"id":"CDD-03","query":"계좌 신규 개설과 일회성 금융거래 고객확인 대상","documentId":"kofiu-cdd","section":"고객확인의 대상"},
+  {"id":"NONE-01","query":"화성 표면의 평균 온도와 대기압","documentId":null},
+  {"id":"NONE-02","query":"광합성 엽록체의 전자 전달 과정","documentId":null},
+  {"id":"HARD-01","query":"KB국민은행 내부 룰 점수 70점의 의심거래보고 기준","documentId":null,"hardUnsupported":true}
+]

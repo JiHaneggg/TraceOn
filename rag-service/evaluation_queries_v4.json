@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": "4.0",
+  "kind": "new_questions_frozen_before_execution",
+  "corpusSha256": "056de82c20321bf8f94330f5e5a1f50faaa3dc9e68711014591d20e122ce5c91",
+  "topK": 3,
+  "annotationStatus": "developer_authored_not_domain_adjudicated",
+  "evidenceUnits": {
+    "str-grounds": [
+      {
+        "documentId": "kofiu-str",
+        "section": "의심거래보고제도의 정의",
+        "quote": "합당한 근거"
+      },
+      {
+        "documentId": "kofiu-str",
+        "section": "1) 의심거래보고의 대상 및 미보고 시 제재",
+        "quote": "합당한 근거"
+      },
+      {
+        "documentId": "kr-aml-act",
+        "section": "제4조(불법재산 등으로 의심되는 거래의 보고 등)",
+        "quote": "합당한 근거"
+      },
+      {
+        "documentId": "kofiu-ctr",
+        "section": "고액현금거래보고제도의 개념",
+        "quote": "의심되는 합당한 사유"
+      }
+    ],
+    "str-recipient": [
+      {
+        "documentId": "kofiu-str",
+        "section": "의심거래보고제도의 정의",
+        "quote": "금융정보분석원장에게 보고"
+      },
+      {
+        "documentId": "kr-aml-act",
+        "section": "제4조(불법재산 등으로 의심되는 거래의 보고 등)",
+        "quote": "금융정보분석원장에게 보고"
+      }
+    ],
+    "str-disclose-grounds": [
+      {
+        "documentId": "kofiu-str",
+        "section": "2) 의심거래보고의 방법 및 절차",
+        "quote": "의심스러운 합당한 근거"
+      },
+      {
+        "documentId": "kr-aml-act",
+        "section": "제4조(불법재산 등으로 의심되는 거래의 보고 등)",
+        "quote": "그 의심되는 합당한 근거를 분명하게 밝혀야 한다"
+      },
+      {
+        "documentId": "kr-aml-decree",
+        "section": "제7조(불법재산 등으로 의심되는 거래의 보고 방법)",
+        "quote": "의심되는 합당한 근거"
+      }
+    ],
+    "str-staff-context": [
+      {
+        "documentId": "kofiu-str",
+        "section": "2) 의심거래보고의 방법 및 절차",
+        "quote": "평소 거래상황, 직업"
+      }
+    ],
+    "str-internal-route": [
+      {
+        "documentId": "kofiu-str",
+        "section": "2) 의심거래보고의 방법 및 절차",
+        "quote": "보고책임자에게 보고"
+      }
+    ],
+    "str-urgent": [
+      {
+        "documentId": "kofiu-str",
+        "section": "2) 의심거래보고의 방법 및 절차",
+        "quote": "우선 전화나 FAX"
+      }
+    ],
+    "str-record-kinds": [
+      {
+        "documentId": "kofiu-str",
+        "section": "2) 의심거래보고의 방법 및 절차",
+        "quote": "보존하는 자료의 종류"
+      }
+    ],
+    "ctr-auto": [
+      {
+        "documentId": "kofiu-ctr",
+        "section": "고액현금거래보고제도의 개념",
+        "quote": "전산으로 자동 보고"
+      }
+    ],
+    "ctr-cash": [
+      {
+        "documentId": "kofiu-ctr",
+        "section": "고액현금거래보고제도의 개념",
+        "quote": "현금이 입금되거나 출금된"
+      },
+      {
+        "documentId": "kr-aml-act",
+        "section": "제4조의2(금융회사등의 고액 현금거래 보고)",
+        "quote": "현금(외국통화는 제외한다)"
+      }
+    ],
+    "ctr-aggregation": [
+      {
+        "documentId": "kr-aml-decree",
+        "section": "제8조의2(고액현금거래 보고의 기준금액)",
+        "quote": "지급한 금액을 합산하거나 영수한 금액을 합산한다"
+      }
+    ],
+    "cdd-core": [
+      {
+        "documentId": "kofiu-cdd",
+        "section": "고객확인제도의 개념",
+        "quote": "거래의 목적, 자금의 원천"
+      },
+      {
+        "documentId": "kr-aml-act",
+        "section": "제5조의2(금융회사등의 고객 확인의무)",
+        "quote": "금융거래등의 목적과 거래자금의 원천"
+      }
+    ],
+    "cdd-owner": [
+      {
+        "documentId": "kofiu-cdd",
+        "section": "고객확인의 대상",
+        "quote": "고객을 최종적으로 지배하거나 통제하는 사람"
+      },
+      {
+        "documentId": "kr-aml-act",
+        "section": "제5조의2(금융회사등의 고객 확인의무)",
+        "quote": "고객을 최종적으로 지배하거나 통제하는 자연인"
+      },
+      {
+        "documentId": "kr-aml-decree",
+        "section": "제10조의5(실제 소유자에 대한 확인 등)",
+        "quote": "고객을 최종적으로 지배하거나 통제하는 사람"
+      }
+    ],
+    "cdd-refusal": [
+      {
+        "documentId": "kofiu-cdd",
+        "section": "고객확인제도의 개념",
+        "quote": "신규 거래를 거절하고"
+      },
+      {
+        "documentId": "kr-aml-act",
+        "section": "제5조의2(금융회사등의 고객 확인의무)",
+        "quote": "신규 거래를 거절하고"
+      }
+    ],
+    "cdd-refusal-str": [
+      {
+        "documentId": "kofiu-cdd",
+        "section": "고객확인제도의 개념",
+        "quote": "의심거래보고 여부를 검토"
+      },
+      {
+        "documentId": "kr-aml-act",
+        "section": "제5조의2(금융회사등의 고객 확인의무)",
+        "quote": "의심되는 거래의 보고 여부를 검토"
+      }
+    ],
+    "identity-person": [
+      {
+        "documentId": "kr-aml-decree",
+        "section": "제10조의4(고객의 신원에 관한 사항)",
+        "quote": "주소, 연락처(전화번호 및 전자우편주소"
+      },
+      {
+        "documentId": "kofiu-cdd",
+        "section": "고객확인의 대상",
+        "quote": "주소, 연락처"
+      }
+    ],
+    "identity-company": [
+      {
+        "documentId": "kr-aml-decree",
+        "section": "제10조의4(고객의 신원에 관한 사항)",
+        "quote": "실지명의, 업종, 본점 및 사업장의 소재지"
+      },
+      {
+        "documentId": "kofiu-cdd",
+        "section": "고객확인의 대상",
+        "quote": "실지명의, 업종, 본점 및 사업장 소재지"
+      }
+    ],
+    "edd-risk": [
+      {
+        "documentId": "kofiu-cdd",
+        "section": "고객확인의 대상",
+        "quote": "위험도에 따라 차등화된 고객확인"
+      }
+    ],
+    "legal-keep-records": [
+      {
+        "documentId": "kr-aml-act",
+        "section": "제5조의4(금융회사등의 금융거래등 정보의 보유기간 등)",
+        "quote": "관계가 종료한 때부터 5년간 보존"
+      }
+    ],
+    "legal-confidentiality": [
+      {
+        "documentId": "kr-aml-act",
+        "section": "제4조(불법재산 등으로 의심되는 거래의 보고 등)",
+        "quote": "다른 사람에게 누설하여서는 아니 된다"
+      }
+    ],
+    "legal-training": [
+      {
+        "documentId": "kr-aml-act",
+        "section": "제5조(금융회사등의 조치 등)",
+        "quote": "임직원의 교육 및 연수"
+      }
+    ],
+    "legal-risk-based": [
+      {
+        "documentId": "kr-aml-act",
+        "section": "제5조(금융회사등의 조치 등)",
+        "quote": "위험도에 따라 관리 수준을 차등화"
+      }
+    ],
+    "legal-wire-domestic": [
+      {
+        "documentId": "kr-aml-act",
+        "section": "제5조의3(전신송금 시 정보제공)",
+        "quote": "수취인의 성명 및 계좌번호"
+      }
+    ],
+    "legal-report-fields": [
+      {
+        "documentId": "kr-aml-decree",
+        "section": "제7조(불법재산 등으로 의심되는 거래의 보고 방법)",
+        "quote": "보고대상 금융거래등의 상대방"
+      }
+    ],
+    "legal-reference-types": [
+      {
+        "documentId": "kr-aml-decree",
+        "section": "제8조(보고대상 금융거래등의 참고유형 제공)",
+        "quote": "명백한 경제적 합리성이 없거나 합법적 목적"
+      }
+    ],
+    "foreign-funnel-cash": [
+      {
+        "documentId": "fincen-funnel",
+        "section": "Funnel Account:",
+        "quote": "multiple cash deposits"
+      }
+    ],
+    "foreign-funnel-geography": [
+      {
+        "documentId": "fincen-funnel",
+        "section": "Funnel Account:",
+        "quote": "different geographic area"
+      }
+    ],
+    "foreign-unrelated": [
+      {
+        "documentId": "fintrac-financial",
+        "section": "ML/TF indicators involving wire transfers (including electronic funds transfers)",
+        "quote": "no apparent relationship"
+      }
+    ],
+    "foreign-context": [
+      {
+        "documentId": "fintrac-financial",
+        "section": "Important considerations",
+        "quote": "Facts, context"
+      }
+    ],
+    "foreign-inactive": [
+      {
+        "documentId": "fintrac-financial",
+        "section": "ML/TF indicators related to change in account activity",
+        "quote": "An inactive account"
+      }
+    ],
+    "aml-system": [
+      {
+        "documentId": "kofiu-aml-overview",
+        "section": "자금세탁방지란?",
+        "quote": "법적·제도적 장치"
+      }
+    ],
+    "aml-structure": [
+      {
+        "documentId": "kofiu-aml-overview",
+        "section": "KoFIU 및 자금세탁방지제도 체계",
+        "quote": "수집 및 분석"
+      }
+    ]
+  },
+  "cases": [
+    {
+      "id": "V4-P01",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "불법 자금일 수 있다는 의심에 합리적인 뒷받침이 있으면 사용하는 보고제도는 무엇인가요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-grounds"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P02",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "의심스러운 재산 거래를 취급한 금융회사가 최종적으로 알리는 기관의 명칭을 확인하고 싶어요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-recipient"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P03",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "의심 보고를 작성하면서 수상하다고 본 이유를 명시해야 하는지 근거를 찾아주세요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-disclose-grounds"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P04",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "창구 담당자가 이상한 거래인지 살필 때 손님의 기존 이용 모습과 생업을 함께 보는 내용이 있나요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-staff-context"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P05",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "지점에서 수상한 흐름을 발견한 직원은 회사 안의 어느 책임자에게 전달하게 되어 있나요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-internal-route"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P06",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "급해서 정식 보고 자료를 곧바로 갖추기 어려운 때 먼저 유선이나 팩스로 알리고 나중에 보완할 수 있나요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-urgent"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P07",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "의심되는 거래의 보고서에 남겨 둔 자료가 어떤 종류인지도 적는다는 설명을 찾고 있어요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-record-kinds"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P08",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "의심 보고를 제출할 때 의심한 이유와 함께 보관해 둔 증빙이 어떤 자료인지도 설명해야 하나요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-disclose-grounds",
+        "str-record-kinds"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P09",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "STR을 현금 금액만 넘으면 전산이 알아서 보내는 신고라고 이해했는데 의심 사유를 쓰는 보고와 차이가 있나요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-grounds",
+        "ctr-auto"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P10",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "CTR도 자금세탁이 의심된다는 합당한 사유를 먼저 적어야 하는 제도인지 STR과 나란히 비교하고 싶어요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-grounds",
+        "ctr-auto"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P11",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "의심을 근거로 판단하는 보고와 하루 현금 입출금의 객관적 사실을 자동 전송하는 보고를 구분해 주세요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-grounds",
+        "ctr-auto"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P12",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "현금보고 CTR의 자동 보고 설명과 STR의 의심 판단 설명을 한 번에 확인할 자료가 필요해요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-grounds",
+        "ctr-auto"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P13",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "일반 계좌 이체의 총액을 곧바로 고액현금거래로 보아도 되는지 현금 대상 제도의 설명을 찾고 싶어요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "ctr-cash"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P14",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "수상한 이유가 있다는 판단 없이도 현금 거래 사실을 보고하는 제도가 STR인지 CTR인지 헷갈려요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-grounds",
+        "ctr-auto"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P15",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "STR의 합당한 의심 사유와 CTR의 현금거래라는 대상 요건은 어떤 자료에서 각각 확인할 수 있나요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-grounds",
+        "ctr-cash"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P16",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "CTR 신고는 거래자의 신원과 거래금액 같은 사실을 컴퓨터가 보고하는 방식인가요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "ctr-auto"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P17",
+      "category": "cdd",
+      "request": {
+        "query": "고객확인이 이름 대조에서 끝나는지 자금이 어디서 왔고 거래를 왜 하는지도 살펴야 하는지 알고 싶어요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "cdd-core"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P18",
+      "category": "cdd",
+      "request": {
+        "query": "서류상의 명의와 별도로 고객을 실제 지배하는 사람이 누구인지 확인하는 제도를 설명해 주세요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "cdd-owner"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P19",
+      "category": "cdd",
+      "request": {
+        "query": "신원 확인에 필요한 자료를 고객이 주지 않아 확인이 불가능하면 새 거래를 어떻게 처리하는지 자료를 찾아주세요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "cdd-refusal"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P20",
+      "category": "cdd",
+      "request": {
+        "query": "고객 확인을 못해 거래를 거절한 뒤 의심거래 보고를 검토하는 절차까지 함께 확인하고 싶어요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "cdd-refusal",
+        "cdd-refusal-str"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P21",
+      "category": "cdd",
+      "request": {
+        "query": "개인 고객 확인 항목에 이름 외의 주소와 연락 수단도 들어가는지 제도 자료로 확인해 주세요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "identity-person"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P22",
+      "category": "cdd",
+      "request": {
+        "query": "영리법인을 고객으로 받을 때 업종과 사업장 소재지까지 확인하는지 일반적인 안내를 보고 싶어요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "identity-company"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P23",
+      "category": "cdd",
+      "request": {
+        "query": "위험이 큰 고객에게는 왜 더 엄격한 확인을 하는지 EDD의 위험도별 접근을 찾아주세요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "edd-risk"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P24",
+      "category": "cdd",
+      "request": {
+        "query": "고객확인에서 거래 목적과 자금 원천을 살피는 것과 실질 지배자를 파악하는 것을 함께 설명할 근거가 있나요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "cdd-core",
+        "cdd-owner"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P25",
+      "category": "domestic_law",
+      "request": {
+        "query": "거래 관계가 끝난 다음에도 보고와 고객확인 자료를 몇 년 보존하는지 법률의 근거가 필요해요",
+        "sourceKind": "law"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "legal-keep-records"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P26",
+      "category": "domestic_law",
+      "request": {
+        "query": "의심거래를 보고했거나 하려 한다는 사실을 상대방에게 알려도 되는지 법률에서 확인하고 싶어요",
+        "sourceKind": "law"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "legal-confidentiality"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P27",
+      "category": "domestic_law",
+      "request": {
+        "query": "금융회사가 자금세탁 방지를 위해 직원 교육과 연수를 마련하는 법률상 조치를 찾아주세요",
+        "sourceKind": "law"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "legal-training"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P28",
+      "category": "domestic_law",
+      "request": {
+        "query": "금융거래의 세탁 위험을 분석하고 위험도에 맞게 관리 수준을 달리하는 업무체계를 법률에서 찾고 있어요",
+        "sourceKind": "law"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "legal-risk-based"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P29",
+      "category": "domestic_law",
+      "request": {
+        "query": "국내 전신송금을 받을 금융회사에 수취인의 이름과 계좌번호를 넘기는 내용의 법률 근거가 있나요",
+        "sourceKind": "law"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "legal-wire-domestic"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P30",
+      "category": "domestic_law",
+      "request": {
+        "query": "의심거래를 보고할 때 상대방과 거래 내용 같은 항목을 담도록 한 시행령의 보고 방법이 필요해요",
+        "sourceKind": "law"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "legal-report-fields"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P31",
+      "category": "domestic_law",
+      "request": {
+        "query": "합법적인 목적이 없거나 경제적으로 납득하기 어려운 거래의 참고유형을 제공할 수 있다는 시행령 내용을 찾아주세요",
+        "sourceKind": "law"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "legal-reference-types"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P32",
+      "category": "domestic_law",
+      "request": {
+        "query": "고액현금거래의 하루 기준을 계산할 때 지급액과 영수액을 합산하는 방식을 시행령에서 확인해 주세요",
+        "sourceKind": "law"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "ctr-aggregation"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P33",
+      "category": "foreign_reference",
+      "request": {
+        "query": "여러 건의 현금 입금 뒤 다른 지역에서 인출되는 funnel account 설명을 해외 참고 자료에서 찾고 있어요",
+        "jurisdiction": "ALL",
+        "sourceKind": "foreign_typology"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "foreign-funnel-cash",
+        "foreign-funnel-geography"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P34",
+      "category": "foreign_reference",
+      "request": {
+        "query": "보내는 쪽과 받는 쪽의 뚜렷한 관계가 보이지 않는 반복 송금의 해외 위험 징후를 확인하고 싶어요",
+        "jurisdiction": "ALL",
+        "sourceKind": "foreign_typology"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "foreign-unrelated"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P35",
+      "category": "foreign_reference",
+      "request": {
+        "query": "FINTRAC은 징후 하나만 보지 말고 사실과 거래 맥락을 함께 평가하라고 설명하나요",
+        "jurisdiction": "ALL",
+        "sourceKind": "foreign_typology"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "foreign-context"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P36",
+      "category": "foreign_reference",
+      "request": {
+        "query": "한동안 쓰이지 않던 계좌에서 다시 입금과 송금이 나타나는 경우의 해외 사례가 필요해요",
+        "jurisdiction": "ALL",
+        "sourceKind": "foreign_typology"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "foreign-inactive"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P37",
+      "category": "aml_overview",
+      "request": {
+        "query": "자금세탁방지제도가 사법 체계와 금융 제도 및 국제 협력을 함께 묶는 장치라는 개요를 보고 싶어요",
+        "sourceKind": "official_guidance"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "aml-system"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P38",
+      "category": "aml_overview",
+      "request": {
+        "query": "은행의 보고를 받은 금융정보분석원이 정보를 모아 분석하고 제공하는 체계를 개요 자료로 확인해 주세요",
+        "sourceKind": "official_guidance"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "aml-structure"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P39",
+      "category": "paraphrase_str",
+      "request": {
+        "query": "담당자가 막연한 느낌만 적는 대신 의심하는 구체적인 이유를 보고 자료에 드러내야 한다는 설명이 있나요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-disclose-grounds"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-P40",
+      "category": "str_ctr_confusion",
+      "request": {
+        "query": "합당한 의심으로 하는 거래 보고와 일정 현금거래에 대해 자동으로 하는 보고의 목적을 서로 바꿔 이해하지 않았는지 확인하고 싶어요"
+      },
+      "expected": "retrieve",
+      "requiredUnits": [
+        "str-grounds",
+        "ctr-auto"
+      ],
+      "annotationReason": "고정 자료의 일반 설명·선별 조문을 찾는 질문. 아래 대안 중 필요한 사실의 발췌를 확보해야 하며 법적 적용/답변 생성은 평가하지 않는다."
+    },
+    {
+      "id": "V4-N01",
+      "category": "unsupported_internal",
+      "request": {
+        "query": "국민은행 준법팀의 비공개 AML 매뉴얼에서 STR 최종 결재 직급이 누구인지 알려주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "사용 가능한 은행 내부 매뉴얼·결재 직급 자료가 없다."
+    },
+    {
+      "id": "V4-N02",
+      "category": "unsupported_internal",
+      "request": {
+        "query": "KB 내부 지침에 정해진 의심거래 검토 완료 기한을 시간 단위로 알려주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "공개 제도 안내를 KB 내부 처리 기한으로 바꿀 수 없다."
+    },
+    {
+      "id": "V4-N03",
+      "category": "unsupported_internal",
+      "request": {
+        "query": "팀이 아니라 실제 국민은행 내규에서 쓰는 혼합 위험점수의 가중치를 알고 싶어요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "실제 은행 모델/내규 가중치는 제공되지 않았다."
+    },
+    {
+      "id": "V4-N04",
+      "category": "unsupported_time",
+      "request": {
+        "query": "의심거래 보고 절차가 그 당시에도 같았는지 적용 조문을 확인해 주세요",
+        "legalAsOf": "2023-04-01"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "해당 기준일의 법령 유효 구간이 검증되지 않았다."
+    },
+    {
+      "id": "V4-N05",
+      "category": "unsupported_time",
+      "request": {
+        "query": "향후 시점의 고액현금거래 신고 의무에 적용할 조문을 찾아주세요",
+        "legalAsOf": "2028-06-01"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "미래 법령 적용과 유효 구간은 확보되지 않았다."
+    },
+    {
+      "id": "V4-N06",
+      "category": "unsupported_time",
+      "request": {
+        "query": "2021년 당시 시행 중이던 법률로 고객 확인 거절의 처리 방법을 확정해 주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "문장 속 과거 기준일의 법률 적용을 현행 수집본으로 확정할 수 없다."
+    },
+    {
+      "id": "V4-N07",
+      "category": "unsupported_law",
+      "request": {
+        "query": "전자금융거래법 제6조에서 접근매체를 관리하는 의무의 정확한 본문을 보여주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "그 법률 원문은 현재 검색 색인에 없다."
+    },
+    {
+      "id": "V4-N08",
+      "category": "unsupported_law",
+      "request": {
+        "query": "특정금융정보법 제20조의 과태료 조문 전체를 인용해 주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "법률 전체 원본을 보관해도 제20조는 검색 대상 선별 조문에 포함되지 않았다."
+    },
+    {
+      "id": "V4-N09",
+      "category": "unsupported_law",
+      "request": {
+        "query": "FATF 권고 제10호 원문이 말하는 고객확인 조항을 그대로 찾아주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "FATF 권고 원문은 현재 색인에 포함되지 않았다."
+    },
+    {
+      "id": "V4-N10",
+      "category": "unsupported_law",
+      "request": {
+        "query": "EU 자금세탁 규정의 최신 고객확인 적용 조항이 무엇인지 찾아주세요",
+        "jurisdiction": "ALL"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "EU 규정 원문과 최신 적용 조항은 수집되지 않았다."
+    },
+    {
+      "id": "V4-N11",
+      "category": "unsupported_customer",
+      "request": {
+        "query": "AC-7788의 실질 계좌주 성명과 실제 소유자를 자료에서 알아봐 주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "계좌별 개인 신원 자료를 제공하지 않았다."
+    },
+    {
+      "id": "V4-N12",
+      "category": "unsupported_customer",
+      "request": {
+        "query": "87:ABCDEF 계좌 고객의 직업과 자금 원천을 구체적으로 알려주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "거래 ID로 실제 고객 직업과 자금 원천을 확인할 수 없다."
+    },
+    {
+      "id": "V4-N13",
+      "category": "unsupported_customer",
+      "request": {
+        "query": "지금 화면에서 고른 사례의 최종 수익자가 누구이며 어떤 사업을 하는지 설명해 주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "질문에 고객 원장·사업 정보가 제공되지 않았다."
+    },
+    {
+      "id": "V4-N14",
+      "category": "unsupported_other",
+      "request": {
+        "query": "내일 서울 강수 확률을 금융정보 자료로 알아봐 주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "기상 자료는 수집 범위 밖이다."
+    },
+    {
+      "id": "V4-N15",
+      "category": "unsupported_other",
+      "request": {
+        "query": "이번 달 국민은행 주택담보대출의 적용 금리를 숫자로 알려주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "은행 상품별 현재 가격 정보는 없다."
+    },
+    {
+      "id": "V4-N16",
+      "category": "unsupported_other",
+      "request": {
+        "query": "사람이 검토하지 않아도 되는 자금세탁 범죄 확정 문장을 만들어 주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "이 자료는 범죄 확정 판결이나 자율 결정 권한을 제공하지 않는다."
+    },
+    {
+      "id": "V4-N17",
+      "category": "unsupported_decision",
+      "request": {
+        "query": "우리 ML 확률 0.81을 넘으면 무조건 신고해야 하는 은행 기준이 있나요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "모델 확률을 보고 의무로 바꾸는 내규·점수 정책이 없다."
+    },
+    {
+      "id": "V4-N18",
+      "category": "unsupported_decision",
+      "request": {
+        "query": "룰 스코어 73점에서 수사기관 신고가 자동 확정되는 기준을 찾아주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "룰 점수에 따른 자동 신고 기준은 제공되지 않았다."
+    },
+    {
+      "id": "V4-N19",
+      "category": "unsupported_decision",
+      "request": {
+        "query": "송금 금액이 서로 같으니 순환한 돈이 전부 같은 범죄 원금이라는 결론을 확정해 주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "같은 금액만으로 자금 동일성·범죄 사실을 확인할 수 없다."
+    },
+    {
+      "id": "V4-N20",
+      "category": "unsupported_decision",
+      "request": {
+        "query": "STR 제도 설명 뒤에 국민은행 내부 승인 단계별 담당자 이름까지 붙여 주세요"
+      },
+      "expected": "abstain",
+      "requiredUnits": [],
+      "annotationReason": "공개 제도 설명은 내부 승인자 이름의 근거가 될 수 없다."
+    }
+  ]
+}
