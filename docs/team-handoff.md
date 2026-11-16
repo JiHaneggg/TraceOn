@@ -1,12 +1,14 @@
 # 팀 공유용 실행 안내
 
-최신 공유 브랜치는 **`codex/rag-safe-share`**다. DB·룰 기반과 원문/사실 조회·문서 관리·국내 자료 확대·근거 적합성·새 질문 평가·검색 보류 보완을 포함한다. 자동 테스트는 **217개**다. V4 첫 평가는 근거 확보 32/40·보류 14/20, 보완 후 같은 문항 회귀는 근거 확보 32/40·보류 20/20이다. 상세 상태는 [담당 현황](rag-owner-status.md)을 확인한다.
+최신 공유 브랜치는 **`codex/rag-safe-share`**다. 이번 코드에는 DB·룰 기반, RAG 검색 누락/보류 보완, 공식 자료 10문서·61청크, 초안 검증 평가, 그래프→RAG 근거→검토 초안 화면을 포함한다. [완료 작업·다음 역할](team-next-steps.md)과 [화면 사용 방법](graph-rag-integration.md)을 먼저 확인한다.
 
-개인 PC 경로가 남은 이전 개발 커밋을 포함하지 않도록 `main`의 초기 공개 커밋을 기준으로 현재 코드만 묶은 스냅샷이다. `main`에 병합하지 않았다. 최종 사용자 화면, Spring 운영 Graph API, ML 점수 결합, 실제 LLM 호출은 추가 연결이 필요하다.
+공유 코드는 `main` 초기 공개 커밋에서 만든 안전한 스냅샷의 후속이다. 이전 비공개 개발 이력을 가져오지 않으며 `main` 병합은 별도다. 로컬 시연 흐름은 연결됐고 Spring 운영 API·ML 결합·실제 LLM·영속 분석/검토 상태 저장은 남아 있다.
+
+V4의 지원 근거 40/40·미지원 보류 20/20은 개선에 사용한 질문의 회귀 결과다. 멘토 검수 대기 질문 24개는 실제 검색 평가를 실행하지 않았다. 작은 개발 세트 결과를 일반 금융 업무 정확도나 독립 최종평가로 사용하지 않는다.
 
 ## 데이터 없이 코드부터 확인
 
-Python 3.10 이상이 필요하다. 개발 PC의 Python 3.14에서 검증했다. 아래 자동 테스트는 표준 라이브러리만 사용하며 Kaggle 데이터·Neo4j·Docker·API 키 없이 실행한다. 저장소 루트에서 각각 별도 Python 프로세스로 실행한다.
+Python 3.10 이상과 JavaScript 검사에 Node.js가 필요하다. 개발 PC의 Python 3.14·Node.js 24에서 검증했다. Python 자동 테스트는 표준 라이브러리를 사용하며, JavaScript 검사는 저장소에 포함된 Cytoscape 배포본을 쓴다. Kaggle 데이터·실제 Neo4j·Docker·API 키·npm 설치 없이 실행한다. 저장소 루트에서 각각 별도 Python 프로세스로 실행한다.
 
 ```powershell
 git clone --single-branch --branch codex/rag-safe-share https://github.com/JiHaneggg/TraceOn.git
@@ -15,9 +17,11 @@ cd TraceOn
 python -m unittest discover -s data-pipeline/tests -q
 python -m unittest discover -s rule-service/tests -q
 python -m unittest discover -s rag-service/tests -q
+python -m unittest discover -s graph-viewer/tests -q
+node --test graph-viewer/tests/graph.test.mjs graph-viewer/tests/flow.test.mjs graph-viewer/tests/review.test.mjs
 ```
 
-검사 수는 데이터 16·룰 24·RAG 177, 총 217개다. HTTP 계약 테스트는 테스트용 로컬 포트를 사용한다. 테스트 통과는 실제 금융 업무의 정확도나 최종 UI 완성을 의미하지 않는다.
+검사 구성은 데이터 16·룰 24·RAG 211·그래프 Python26·JavaScript29, 총 306개다. HTTP 계약 테스트는 테스트용 로컬 포트를 사용한다. 테스트 통과는 실제 금융 업무의 정확도나 최종 UI 완성을 의미하지 않는다.
 
 Python 소스는 `.gitattributes`로 LF에 고정하고, 이미 평가에 사용한 `evaluation_queries*.json`은 원본 바이트를 보존한다. 운영체제별 자동 줄바꿈 변환으로 기록된 코드·질문 해시가 달라지는 것을 방지하기 위함이다. 기존 셸·Windows 스크립트·이미지 속성 규칙은 유지한다.
 
@@ -63,14 +67,21 @@ python rag-service/rag_server.py --port 8092
 
 실측 기록은 문서에서 확인하되 원본 데이터와 실행 산출물은 필요한 담당자에게 별도로 전달한다. 작은 개발 질문 세트의 결과를 독립 최종평가로 사용하지 않는다.
 
-## 담당자별 연결점
+## 다섯 담당자의 다음 연결점
 
-| 담당 | 우선 확인할 내용 |
+| 담당 | 이어서 할 작업 |
 |---|---|
-| 백엔드/DB | 공통 Graph JSON, 조회 범위·시각·금액 문자열, Spring Graph API와 결과 저장 |
-| 룰/ML | 룰 점수·근거 ID, 연구용 설정의 오탐 한계, ML 점수 결합 |
-| RAG | 문서 버전·검색 품질·인용 추적·미지원 질문 보류 |
-| Agent/LLM | 도구 정의·허용 ID·초안 생성 모드·사람 검토 흐름 |
-| 프론트 | highlightTxIds, factId, chunkId, reportId를 경로·근거·보고서 화면에 연결 |
+| 백엔드 | 기존 Graph/RAG 계약을 Spring 서비스에 연결하고 분석·검토 상태 저장, 실행 환경을 구성 |
+| 프론트 | 현재 로컬 시연 화면을 팀 프론트로 통합하고 그래프·원문·보고서·검토 상태·오류/대기 화면 연결 |
+| 에이전트 | 준비된 도구로 식별→설명→검증 흐름과 실제 LLM, 보류·제한된 재시도·실행 기록 연결 |
+| 문서 | 아키텍처·데이터/Agent 흐름·클래스/API 정의·평가표·발표/시연·회의록을 한 기준으로 통합 |
+| 팀장·DB/RAG | 데이터/룰 근거와 검색·보류 품질, 새 질문 검수, DB 조회 정확성/성능, 일정·범위 관리 |
 
-현재 상태와 남은 작업은 [RAG 담당 현황](rag-owner-status.md), [DB·룰 작업 기록](db-owner-status.md)에 정리했다.
+룰·ML 점수 생성/결합 책임과 비교 실험 기준은 다섯 담당자 안에서 합의한다. 모델 학습 완료나 실제 LLM 호출을 이번 시연에 포함된 것으로 표시하지 않는다.
+
+## 최신 검증과 사용 범위
+
+- 공식 자료 10문서·61청크, 멘토 검수 대기 질문 24개, 60건 구조적 초안 반려 평가를 포함한다. [자료 보강](rag-cycle-sources.md), [검증 평가](verifier-evaluation.md)를 따른다.
+- 그래프/RAG 연결의 관련 자동 검사 55개, 실제 DB 시연 12건의 사실44·인용158 조회와 첨부파일24개 일치를 확인했다. 자동 검사 통과와 근거 충분/사람 승인은 구분한다.
+- 실제 LLM·의미적 Judge·재시도는 미측정이며, 현재 초안은 검산된 사실과 허용 문구를 이용한 템플릿이다.
+- 실제 DB/문서 자료는 Git에 없으므로 코드만 받은 PC에서는 아래 테스트부터 실행하고, 실제 시연은 자료 준비 후 진행한다. `scripts/start-graph-viewer.ps1`과 [연결 가이드](graph-rag-integration.md)를 따른다.

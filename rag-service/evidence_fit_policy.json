@@ -46,6 +46,28 @@
       "sourceKind": "foreign_typology",
       "quote": "Client sending to, or receiving wire transfers from, multiple clients.",
       "quoteSha256": "930336518228284531750573b4e9b0b78ee5020c7ea8e0d8c31818e8ec0c86b1"
+    },
+    "cycle-automotive-reference": {
+      "chunkId": "fintrac-underground-2023:3c5a6e173e3f1f05cd32",
+      "documentId": "fintrac-underground-2023",
+      "section": "Misuse of automotive industry",
+      "sourceSha256": "aef6b7d6360697688d69b39c401eb93d27079e20f9ff9085d2e1d8dc312c1e23",
+      "textSha256": "f927482f008f4d9ad51f07fe20f4db45586916821d414d8c6d096040914b2e1c",
+      "jurisdiction": "CA",
+      "sourceKind": "foreign_typology",
+      "quote": "circular flow of funds between different entities",
+      "quoteSha256": "154af74db16709eb1a1553a0f59574977d8022c06cde03f7d0f364b5e710f60a"
+    },
+    "cycle-gambling-reference": {
+      "chunkId": "fintrac-gambling-2024:eefd74d48eeebaf158e9",
+      "documentId": "fintrac-gambling-2024",
+      "section": "Money laundering indicators for financial entities and money services businesses, including payment service providers, involving online gambling",
+      "sourceSha256": "ac9f8c752334d5a54af840dac43248644ee52ce2f80834641a1d3bb715fd5a8e",
+      "textSha256": "b893e0a8b9529a50eabb38e773819a228abd5a6dbe84eca680848bbee1cacc46",
+      "jurisdiction": "CA",
+      "sourceKind": "foreign_typology",
+      "quote": "Client's account activity appears to be circular in nature",
+      "quoteSha256": "b496fd485cda8c6da058748a0638ce5fd8492e7736ea871f063a2d53ff8e2842"
     }
   },
   "rules": {
@@ -57,7 +79,10 @@
         "due_diligence_context": [
           "cdd-context"
         ],
-        "pattern_reference": []
+        "pattern_reference": [
+          "cycle-automotive-reference",
+          "cycle-gambling-reference"
+        ]
       },
       "conditions": [
         "temporal_cycle",
@@ -106,5 +131,5 @@
       ]
     }
   },
-  "policySha256": "fe05afb812e980cd9ce32e434174831b0680bd72e429f82b83492c698259d2a9"
+  "policySha256": "99c76adacb3ddbe9706c50d0b1d284ed734e09274c4c908e8d6a2875ae7e0f61"
 }

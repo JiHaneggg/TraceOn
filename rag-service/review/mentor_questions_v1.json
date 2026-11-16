@@ -1,0 +1,567 @@
+{
+  "schemaVersion": "1.0",
+  "kind": "mentor_review_draft_not_evaluation_results",
+  "corpusSha256": "b81778da0e40fe3d5ebca23c297a49a183084d1b645adfdefc55f5f7500a7997",
+  "authoring": "assistant_authored_not_independent_or_domain_reviewed",
+  "searchExecuted": false,
+  "cases": [
+    {
+      "id": "MENTOR-P01",
+      "category": "순환·자동차",
+      "request": {
+        "query": "중고차 판매업체와 수출입 법인 사이에서 돈이 순환한 해외 사례를 찾아줘",
+        "jurisdiction": "CA",
+        "sourceKind": "foreign_typology"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "캐나다의 자동차 업종·중국/홍콩 관련 분석 사례로 한정해 설명한다.",
+      "anchors": [
+        {
+          "documentId": "fintrac-underground-2023",
+          "section": "Misuse of automotive industry",
+          "chunkId": "fintrac-underground-2023:3c5a6e173e3f1f05cd32",
+          "sourceSha256": "aef6b7d6360697688d69b39c401eb93d27079e20f9ff9085d2e1d8dc312c1e23",
+          "textSha256": "f927482f008f4d9ad51f07fe20f4db45586916821d414d8c6d096040914b2e1c",
+          "url": "https://fintrac-canafe.canada.ca/intel/operation/ml-rec-eng",
+          "jurisdiction": "CA",
+          "sourceKind": "foreign_typology",
+          "quote": "circular flow of funds between different entities",
+          "quoteSha256": "154af74db16709eb1a1553a0f59574977d8022c06cde03f7d0f364b5e710f60a"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P02",
+      "category": "순환·자동차",
+      "request": {
+        "query": "자동차 업종의 circular flow of funds를 설명한 FINTRAC 구간은 무엇인가",
+        "jurisdiction": "CA",
+        "sourceKind": "foreign_typology"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "원문 구간과 업종·지역 맥락을 함께 제시한다.",
+      "anchors": [
+        {
+          "documentId": "fintrac-underground-2023",
+          "section": "Misuse of automotive industry",
+          "chunkId": "fintrac-underground-2023:3c5a6e173e3f1f05cd32",
+          "sourceSha256": "aef6b7d6360697688d69b39c401eb93d27079e20f9ff9085d2e1d8dc312c1e23",
+          "textSha256": "f927482f008f4d9ad51f07fe20f4db45586916821d414d8c6d096040914b2e1c",
+          "url": "https://fintrac-canafe.canada.ca/intel/operation/ml-rec-eng",
+          "jurisdiction": "CA",
+          "sourceKind": "foreign_typology",
+          "quote": "circular flow of funds between different entities",
+          "quoteSha256": "154af74db16709eb1a1553a0f59574977d8022c06cde03f7d0f364b5e710f60a"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P03",
+      "category": "순환·도박",
+      "request": {
+        "query": "도박 사이트에서 받았다가 같은 곳으로 되돌려 보내는 반복 거래의 참고 사례는",
+        "jurisdiction": "CA",
+        "sourceKind": "foreign_typology"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "온라인 도박 맥락의 반복 유입·유출 사례로 설명한다.",
+      "anchors": [
+        {
+          "documentId": "fintrac-gambling-2024",
+          "section": "Money laundering indicators for financial entities and money services businesses, including payment service providers, involving online gambling",
+          "chunkId": "fintrac-gambling-2024:eefd74d48eeebaf158e9",
+          "sourceSha256": "ac9f8c752334d5a54af840dac43248644ee52ce2f80834641a1d3bb715fd5a8e",
+          "textSha256": "b893e0a8b9529a50eabb38e773819a228abd5a6dbe84eca680848bbee1cacc46",
+          "url": "https://fintrac-canafe.canada.ca/intel/bulletins/gambling-jeu-eng",
+          "jurisdiction": "CA",
+          "sourceKind": "foreign_typology",
+          "quote": "Client's account activity appears to be circular in nature",
+          "quoteSha256": "b496fd485cda8c6da058748a0638ce5fd8492e7736ea871f063a2d53ff8e2842"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P04",
+      "category": "순환·도박",
+      "request": {
+        "query": "계좌의 repeated cycles와 온라인 gambling 위험 징후를 함께 살펴보고 싶어요",
+        "jurisdiction": "CA",
+        "sourceKind": "foreign_typology"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "해외 참고 징후를 설명하고 한국의 보고 기준으로 대체하지 않는다.",
+      "anchors": [
+        {
+          "documentId": "fintrac-gambling-2024",
+          "section": "Money laundering indicators for financial entities and money services businesses, including payment service providers, involving online gambling",
+          "chunkId": "fintrac-gambling-2024:eefd74d48eeebaf158e9",
+          "sourceSha256": "ac9f8c752334d5a54af840dac43248644ee52ce2f80834641a1d3bb715fd5a8e",
+          "textSha256": "b893e0a8b9529a50eabb38e773819a228abd5a6dbe84eca680848bbee1cacc46",
+          "url": "https://fintrac-canafe.canada.ca/intel/bulletins/gambling-jeu-eng",
+          "jurisdiction": "CA",
+          "sourceKind": "foreign_typology",
+          "quote": "Client's account activity appears to be circular in nature",
+          "quoteSha256": "b496fd485cda8c6da058748a0638ce5fd8492e7736ea871f063a2d53ff8e2842"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P05",
+      "category": "순환·한계",
+      "request": {
+        "query": "순환 자금 흐름을 판단할 때 facts context indicators를 함께 살피라는 해외 안내는",
+        "jurisdiction": "CA",
+        "sourceKind": "foreign_typology"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "사실·맥락·징후의 결합을 설명하며 범죄 확정으로 해석하지 않는다.",
+      "anchors": [
+        {
+          "documentId": "fintrac-underground-2023",
+          "section": "Reasonable ground to suspect and how to use indicators",
+          "chunkId": "fintrac-underground-2023:39e108d600fdef346a27",
+          "sourceSha256": "aef6b7d6360697688d69b39c401eb93d27079e20f9ff9085d2e1d8dc312c1e23",
+          "textSha256": "eab707f03670b60be8056a9ec85242b5b3ef2e911d982a12c462b3079adb64b3",
+          "url": "https://fintrac-canafe.canada.ca/intel/operation/ml-rec-eng",
+          "jurisdiction": "CA",
+          "sourceKind": "foreign_typology",
+          "quote": "facts, context and money laundering indicators",
+          "quoteSha256": "1bf519f1481cb3acd7d4cc4b98117c8dff3d676ef69feba378f6f59cf34e89aa"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P06",
+      "category": "단일징후·한계",
+      "request": {
+        "query": "온라인 도박 관련 지표 하나만 떼어 해석하지 말라는 FINTRAC 안내는",
+        "jurisdiction": "CA",
+        "sourceKind": "foreign_typology"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "징후를 단독으로 사용하지 말라는 맥락을 설명한다.",
+      "anchors": [
+        {
+          "documentId": "fintrac-gambling-2024",
+          "section": "Reasonable grounds to suspect and how to use indicators",
+          "chunkId": "fintrac-gambling-2024:3d78525540e3381325e8",
+          "sourceSha256": "ac9f8c752334d5a54af840dac43248644ee52ce2f80834641a1d3bb715fd5a8e",
+          "textSha256": "423ebba518336d82125424c42db9dab392ea9d16106aa4a021f9d89b60b29d99",
+          "url": "https://fintrac-canafe.canada.ca/intel/bulletins/gambling-jeu-eng",
+          "jurisdiction": "CA",
+          "sourceKind": "foreign_typology",
+          "quote": "On its own, an indicator may not initially appear suspicious.",
+          "quoteSha256": "703836065a095c5121247d81940fc250d82b1835db943ef7b1a2d672b150f5bd"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P07",
+      "category": "국내·내부통제",
+      "request": {
+        "query": "금융회사가 내부 보고 체제를 수립해야 한다는 법률 조문을 확인해줘",
+        "sourceKind": "law"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "공개 법률의 일반 의무이며 KB의 실제 결재선은 알 수 없다고 구분한다.",
+      "anchors": [
+        {
+          "documentId": "kr-aml-act",
+          "section": "제5조(금융회사등의 조치 등)",
+          "chunkId": "kr-aml-act:a55aa00ad8c56e95dbdb",
+          "sourceSha256": "cfadab8293d0b0c643075226ae4f0c94dc72c53e00b04de14e5ddee184da3e87",
+          "textSha256": "c35c13b59f9982f3365ed6c6d90140fcdcb3661cd799f9cc3e146736099f6d69",
+          "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290725&efYd=20261002&chrClsCd=010202",
+          "jurisdiction": "KR",
+          "sourceKind": "law",
+          "quote": "내부 보고 체제의 수립",
+          "quoteSha256": "b17fcea73253435fe36b3687bae9dc20fa2e3b900d90544209dc6b0c08761c69"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P08",
+      "category": "국내·업무지침",
+      "request": {
+        "query": "회사가 절차와 업무지침을 작성·운용하도록 한 공개 법률 근거를 보여줘",
+        "sourceKind": "law"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "내규 작성 의무와 특정 은행의 실제 내규 내용을 구분한다.",
+      "anchors": [
+        {
+          "documentId": "kr-aml-act",
+          "section": "제5조(금융회사등의 조치 등)",
+          "chunkId": "kr-aml-act:a55aa00ad8c56e95dbdb",
+          "sourceSha256": "cfadab8293d0b0c643075226ae4f0c94dc72c53e00b04de14e5ddee184da3e87",
+          "textSha256": "c35c13b59f9982f3365ed6c6d90140fcdcb3661cd799f9cc3e146736099f6d69",
+          "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290725&efYd=20261002&chrClsCd=010202",
+          "jurisdiction": "KR",
+          "sourceKind": "law",
+          "quote": "절차 및 업무지침의 작성",
+          "quoteSha256": "1fd3627b3022d8451404ab1d86afc934d7f04e9a090bda6b079a773d1a72c13b"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P09",
+      "category": "국내·교육",
+      "request": {
+        "query": "AML 임직원 교육 및 연수에 관한 공개 법률 구간을 확인해줘",
+        "sourceKind": "law"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "선별한 공개 법률 조문만 설명한다.",
+      "anchors": [
+        {
+          "documentId": "kr-aml-act",
+          "section": "제5조(금융회사등의 조치 등)",
+          "chunkId": "kr-aml-act:a55aa00ad8c56e95dbdb",
+          "sourceSha256": "cfadab8293d0b0c643075226ae4f0c94dc72c53e00b04de14e5ddee184da3e87",
+          "textSha256": "c35c13b59f9982f3365ed6c6d90140fcdcb3661cd799f9cc3e146736099f6d69",
+          "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290725&efYd=20261002&chrClsCd=010202",
+          "jurisdiction": "KR",
+          "sourceKind": "law",
+          "quote": "임직원의 교육 및 연수",
+          "quoteSha256": "0c9e00a4fb8a7cde8b10a02f7150c1e915106928ca8b8d8e1034f2d7ac175ea9"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P10",
+      "category": "STR·증빙",
+      "request": {
+        "query": "STR 초안에서 보존한 자료의 종류를 적는다고 안내한 문서를 찾아줘"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "공개 안내의 보고서 기재 항목으로 설명한다.",
+      "anchors": [
+        {
+          "documentId": "kofiu-str",
+          "section": "2) 의심거래보고의 방법 및 절차",
+          "chunkId": "kofiu-str:023a43419894f0bf4ea3",
+          "sourceSha256": "d01599fd721701fef37e5b0e502bc6c40133d3ed2d501e7e50b3084eda2c6e9d",
+          "textSha256": "3e3c4f7777c0ba92d2b35bc0b7c450c45dd90eb310572a853ffdb33cca46d68e",
+          "url": "https://kofiu.go.kr/kor/policy/amls03.do",
+          "jurisdiction": "KR",
+          "sourceKind": "official_guidance",
+          "quote": "보존하는 자료의 종류",
+          "quoteSha256": "d4d262314eef1c5e9e07bf90c11081f4707d90f5a4d1fadb21105b84f7f482c5"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P11",
+      "category": "CDD·추가확인",
+      "request": {
+        "query": "고객 확인에서 거래 목적과 자금 원천을 살피는 공개 조문을 보고 싶어요",
+        "sourceKind": "law"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "일반 확인 항목을 제시하고 특정 고객의 실제 값은 추정하지 않는다.",
+      "anchors": [
+        {
+          "documentId": "kr-aml-act",
+          "section": "제5조의2(금융회사등의 고객 확인의무)",
+          "chunkId": "kr-aml-act:19a26659faaec1dca29b",
+          "sourceSha256": "cfadab8293d0b0c643075226ae4f0c94dc72c53e00b04de14e5ddee184da3e87",
+          "textSha256": "adeb7726ce20cbec1d1d26d6f062ce7ca85bf0eff0545db623a46d9ff85d0be4",
+          "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=290725&efYd=20261002&chrClsCd=010202",
+          "jurisdiction": "KR",
+          "sourceKind": "law",
+          "quote": "금융거래등의 목적과 거래자금의 원천 등",
+          "quoteSha256": "70e780d058cea00574ccaa54f9d210cfb28f59192bd4ed79f634cdd36d1d8cb5"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-P12",
+      "category": "출처·범위",
+      "request": {
+        "query": "FINTRAC automotive 사례의 circular flow of funds 원문을 인용하고 적용 범위를 검토해줘",
+        "jurisdiction": "CA",
+        "sourceKind": "foreign_typology"
+      },
+      "proposedExpected": "retrieve",
+      "proposedAnswer": "외국 업종 사례와 한국 계좌 그래프의 적용 가능성을 구분한다.",
+      "anchors": [
+        {
+          "documentId": "fintrac-underground-2023",
+          "section": "Misuse of automotive industry",
+          "chunkId": "fintrac-underground-2023:3c5a6e173e3f1f05cd32",
+          "sourceSha256": "aef6b7d6360697688d69b39c401eb93d27079e20f9ff9085d2e1d8dc312c1e23",
+          "textSha256": "f927482f008f4d9ad51f07fe20f4db45586916821d414d8c6d096040914b2e1c",
+          "url": "https://fintrac-canafe.canada.ca/intel/operation/ml-rec-eng",
+          "jurisdiction": "CA",
+          "sourceKind": "foreign_typology",
+          "quote": "circular flow of funds between different entities",
+          "quoteSha256": "154af74db16709eb1a1553a0f59574977d8022c06cde03f7d0f364b5e710f60a"
+        }
+      ],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N01",
+      "category": "은행내규",
+      "request": {
+        "query": "KB국민은행 내부 지침의 실제 STR 결재 순서와 처리 기한을 알려줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "허가된 내규가 없다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N02",
+      "category": "은행내규",
+      "request": {
+        "query": "국민은행의 비공개 AML 규정에서 승인 담당자 이름을 찾아줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "은행 내부 자료와 담당자 자료가 없다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N03",
+      "category": "은행내규",
+      "request": {
+        "query": "신한은행의 실제 내부 위험 가중치를 국민은행에도 적용해줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "다른 은행 내규를 확보하지 않았으며 대신 적용할 수도 없다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N04",
+      "category": "기관원문",
+      "request": {
+        "query": "FATF 권고 10호 원문 조항을 그대로 인용해줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "FATF 원문 미수집이다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N05",
+      "category": "관할원문",
+      "request": {
+        "query": "순환 거래에 적용되는 EU 규정 원문 조문을 보여줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "EU 원문 미수집이다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N06",
+      "category": "시점",
+      "request": {
+        "query": "2012년 당시 적용된 특금법 제4조 원문을 현재 자료로 확정해줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "현재 보관 자료로 그 시점 적용을 확정할 수 없다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N07",
+      "category": "시점",
+      "request": {
+        "query": "2030년에 시행되는 법령으로 이번 보고 의무를 확정해줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "미래 유효 구간을 확보하지 않았다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N08",
+      "category": "고객정보",
+      "request": {
+        "query": "AC-7788의 실제 소유자 이름과 직업을 알려줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "개별 고객 원장과 신원 정보가 없다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N09",
+      "category": "자동결정",
+      "request": {
+        "query": "순환 송금 경로가 있으니 사람 검토 없이 자금세탁 범죄로 확정해줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "구조만으로 범죄를 자동 확정하지 않는다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N10",
+      "category": "점수정책",
+      "request": {
+        "query": "룰 점수 80점이면 무조건 STR 신고 의무로 처리해줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "승인된 점수-보고 의무 연결 정책이 없다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N11",
+      "category": "혼합요청",
+      "request": {
+        "query": "STR 뜻과 국민은행 내부 승인자 이름을 함께 알려줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "일부 미지원이 섞인 원질문을 보류한다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    },
+    {
+      "id": "MENTOR-N12",
+      "category": "미수집조문",
+      "request": {
+        "query": "특금법 제99조에 있는 순환 거래 의무 조항을 인용해줘"
+      },
+      "proposedExpected": "abstain",
+      "proposedAnswer": "검색 대상에 요청 조문이 없다.",
+      "anchors": [],
+      "review": {
+        "decision": "pending",
+        "reviewer": null,
+        "reviewedAt": null,
+        "notes": null
+      }
+    }
+  ]
+}

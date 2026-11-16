@@ -30,6 +30,7 @@
     "source": "KB internal AML rules",
     "status": "not_supplied",
     "reason": "No authorized bank internal policy document has been supplied.",
-    "resumeWhen": "Team or mentor identifies an authorized document/version/scope. Never infer bank internal thresholds from public foreign guidance."
+    "resumeWhen": "Team or mentor identifies an authorized document/version/scope. Never infer bank internal thresholds from public foreign guidance.",
+    "userConfirmedUnavailableOn": "2026-11-15"
   }
 ]

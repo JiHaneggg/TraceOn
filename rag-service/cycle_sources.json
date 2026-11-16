@@ -1,0 +1,36 @@
+[
+  {
+    "documentId": "fintrac-underground-2023",
+    "title": "Updated indicators: Laundering the proceeds of crime through underground banking schemes",
+    "url": "https://fintrac-canafe.canada.ca/intel/operation/ml-rec-eng",
+    "publisher": "FINTRAC Canada",
+    "jurisdiction": "CA",
+    "sourceKind": "foreign_typology",
+    "effectiveDate": null,
+    "modifiedDate": "2023-07-25",
+    "version": "FINTRAC-2023-OA002 / July 2023",
+    "applicability": "캐나다의 중국·홍콩 관련 지하금융 분석 중 자동차 판매·수출입 업체 사례다. 한국 법령·은행 내규나 임의의 A→B→C→A 거래에 대한 적용 근거가 아니다. 업종·지역·거래 목적·실소유자·동일 자금 여부를 별도 확인해야 한다.",
+    "requiredText": ["FINTRAC-2023-OA002", "July 2023", "2023-07-25"],
+    "sections": [
+      {"heading": "Misuse of automotive industry", "end": "Misuse of the legal profession"},
+      {"heading": "Reasonable ground to suspect and how to use indicators", "end": "Money laundering indicators"}
+    ]
+  },
+  {
+    "documentId": "fintrac-gambling-2024",
+    "title": "Special Bulletin on laundering the proceeds of crime through online gambling sites",
+    "url": "https://fintrac-canafe.canada.ca/intel/bulletins/gambling-jeu-eng",
+    "publisher": "FINTRAC Canada",
+    "jurisdiction": "CA",
+    "sourceKind": "foreign_typology",
+    "effectiveDate": null,
+    "modifiedDate": "2024-01-18",
+    "version": "FINTRAC-2024-SB001 / January 2024",
+    "applicability": "캐나다 온라인 도박 관련 금융기관·자금서비스업 사례다. 도박 사이트에서 수령 후 같은 사이트로 반복 송금하는 맥락의 참고 자료이며 일반 계좌 순환이나 한국의 보고 의무를 입증하지 않는다. 현재 그래프에는 사이트·업종·정상 상거래 목적 정보가 없어 적용 가능성은 미확인이다.",
+    "requiredText": ["FINTRAC-2024-SB001", "January 2024", "2024-01-18"],
+    "sections": [
+      {"heading": "Reasonable grounds to suspect and how to use indicators", "end": "Money laundering indicators"},
+      {"heading": "Money laundering indicators for financial entities and money services businesses, including payment service providers, involving online gambling", "end": "Money laundering indicators for licensed Canadian online gambling sites"}
+    ]
+  }
+]

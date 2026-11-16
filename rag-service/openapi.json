@@ -863,6 +863,9 @@
           },
           "providerCallAuthenticated": {
             "const": false
+          },
+          "integrityMetrics": {
+            "$ref": "#/components/schemas/IntegrityMetrics"
           }
         }
       },
@@ -1013,6 +1016,27 @@
           },
           "scopeAssessment": {
             "$ref": "#/components/schemas/QueryScopeAssessment"
+          },
+          "queryExpansion": {
+            "type": "object",
+            "description": "Optional diagnostics when a bounded vocabulary bridge is applied. Absent for canonical queries with no new bridge. Source text is unchanged; source/jurisdiction/date/privacy guards apply before retrieval.",
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "signals": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "sourceTextModified": {
+                "const": false
+              },
+              "scopeGuardsAppliedFirst": {
+                "const": true
+              }
+            }
           }
         }
       },
@@ -1240,6 +1264,67 @@
           },
           "notice": {
             "type": "string"
+          }
+        }
+      },
+      "IntegrityMetrics": {
+        "type": "object",
+        "description": "Mechanical metrics with explicit denominators and coverage. Not semantic entailment or statutory applicability.",
+        "properties": {
+          "numericFacts": {
+            "type": "object",
+            "description": "ID-bound fact table, controlled observations and query window; unrestricted prose is not fully audited.",
+            "properties": {
+              "matched": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "matchRate": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "tableCoverage": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "missingFactIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "unrestrictedProseFullyAudited": {
+                "const": false
+              }
+            }
+          },
+          "citations": {
+            "type": "object",
+            "description": "Allowlisted context chunk ID plus verbatim quote; null with no citations."
+          },
+          "articleTags": {
+            "type": "object",
+            "description": "Article tags appear in retrieved context; source interpretation and applicability are not verified."
+          },
+          "semanticReview": {
+            "type": "object",
+            "properties": {
+              "measured": {
+                "const": false
+              },
+              "normalCommerceReasoningVerified": {
+                "const": false
+              },
+              "humanReviewRequired": {
+                "const": true
+              }
+            }
           }
         }
       }

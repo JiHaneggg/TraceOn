@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><meta name="description" content="TraceOn 거래 관계와 근거 경로를 확인하는 로컬 그래프 분석 화면"><title>TraceOn · 거래 관계 분석</title><link rel="stylesheet" href="/app.css"><link rel="stylesheet" href="/review.css"><script defer src="/vendor/cytoscape.min.js"></script><script type="module" src="/app.mjs"></script></head>
+<body>
+<div class="shell">
+  <nav class="rail" aria-label="주 메뉴"><a class="brand" href="/" aria-label="TraceOn 홈">T<span></span></a><div class="rail-separator"></div><div class="rail-active" aria-label="거래 관계 분석"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18M6 6h12M6 18h12"/><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/></svg><span>관계 분석</span></div><button id="help-open" class="rail-help" aria-label="화면 사용 안내">?</button><span class="rail-foot">TRACE<span>ON</span></span></nav>
+  <aside class="case-pane" aria-label="분석할 거래 선택">
+    <div class="case-heading"><span class="eyebrow">INVESTIGATION DESK</span><h1>거래 탐색<span id="case-count" class="count-pill">—</span></h1><p>확인할 거래를 선택하세요.</p></div>
+    <label class="search-field"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="m12 12 5 5"/></svg><input id="case-search" type="search" placeholder="거래 ID · 계좌 검색" aria-label="시연 거래 검색"></label>
+    <div class="case-list-heading"><span>시연 거래 목록</span><span class="live-dot">DB 조회</span></div>
+    <div id="case-list" class="case-list" aria-live="polite"><div class="empty-note">거래 목록을 가져오는 중입니다…</div></div>
+    <div class="case-footer"><span class="tiny-dot"></span><div><strong>IBM AML 합성 거래</strong><p>시연을 위해 선별한 데이터입니다.</p></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><div class="breadcrumb">TraceOn <span>/</span> Investigation <span>/</span> <strong>관계 분석</strong></div><div id="connection" class="connection"><i></i><span>DB 연결 확인 중</span></div></header>
+    <div class="workspace">
+      <div class="page-heading"><div><span class="eyebrow">FOLLOW THE TRANSACTION</span><h2>거래 관계 분석</h2><p>연결된 계좌와 자금 흐름을 따라, 판단의 근거를 확인합니다.</p></div><button id="export" class="button secondary" disabled><span aria-hidden="true">↓</span> 조회 JSON</button></div>
+      <label class="mobile-case">분석 거래<select id="mobile-cases" aria-label="모바일 거래 선택"><option>목록 확인 중</option></select></label>
+      <section class="target-strip" aria-label="분석 대상 거래"><div class="target-mark">↗</div><div class="target-title"><span>분석 대상</span><strong id="target-id">거래를 선택하세요</strong></div><div class="target-flow" id="target-flow">실제 Neo4j 데이터를 조회합니다.</div><div class="target-amount" id="target-amount">—</div><button id="refresh" class="icon-button" title="DB에서 다시 조회" aria-label="DB에서 다시 조회">↻</button></section>
+      <section class="metrics" aria-label="조회 요약">
+        <div class="metric"><span class="metric-label">검토 우선순위 <span class="metric-icon">◈</span></span><div class="metric-value"><strong id="rule-score">—</strong><span>/ 100</span><span id="score-state" class="state-chip">조회 대기</span></div><div class="score-track"><i id="score-fill"></i></div><small>룰 관찰 점수 · 범죄 확률이 아닙니다</small></div>
+        <div class="metric"><span class="metric-label">연결된 계좌 <span class="metric-icon">◎</span></span><div class="metric-value"><strong id="account-count">—</strong><span>개</span></div><small id="hop-caption">대상 거래와 연결된 조회 범위</small></div>
+        <div class="metric"><span class="metric-label">조회한 거래 <span class="metric-icon">⇄</span></span><div class="metric-value"><strong id="transaction-count">—</strong><span>건</span></div><small>원본 거래 ID와 송금 방향 유지</small></div>
+        <div class="metric"><span class="metric-label">탐지 근거 경로 <span class="metric-icon">⌁</span></span><div class="metric-value"><strong id="pattern-count">—</strong><span>개</span></div><small id="evidence-caption">룰 조건에 해당하는 경로</small></div>
+      </section>
+      <div class="analysis-grid">
+        <section class="graph-card" aria-label="거래 관계 그래프">
+          <div class="card-heading"><div><span class="section-kicker">FOLLOW THE EVIDENCE</span><h3>의심 경로 분석 <span id="graph-scope" class="soft-chip">조회 대기</span></h3></div><div class="segmented" aria-label="그래프 표시 범위"><button data-mode="evidence" class="active" aria-pressed="true">핵심 경로</button><button data-mode="all" aria-pressed="false">주변 연결</button></div></div>
+          <div id="pattern-picker" class="pattern-picker" aria-label="분석할 탐지 패턴 선택"></div>
+          <div id="flow-summary" class="flow-summary" aria-live="polite"></div>
+          <div class="graph-filters"><div class="filter-group"><label>연결 범위<select id="hops"><option value="1">1홉</option><option value="2" selected>2홉</option><option value="3">3홉</option></select></label><label>이전 기간<select id="days"><option value="1">1일</option><option value="3">3일</option><option value="7" selected>7일</option></select></label></div><button id="labels" class="text-button" aria-pressed="true">전체 금액</button></div>
+          <div class="graph-stage"><div id="graph" role="img" aria-label="계좌 간 송금 방향과 근거 경로. 아래 거래 표에서도 상세 정보를 선택할 수 있습니다."></div><div class="graph-controls"><button id="zoom-in" aria-label="그래프 확대">+</button><button id="zoom-out" aria-label="그래프 축소">−</button><button id="fit" aria-label="그래프 전체 맞춤" title="전체 맞춤">⛶</button><button id="layout" aria-label="그래프 다시 정렬" title="다시 정렬">↻</button></div><div id="graph-overlay" class="graph-overlay"><div class="loader"></div><strong id="overlay-title">거래 관계를 확인하고 있습니다</strong><p id="overlay-message">실제 DB에서 계좌와 송금 경로를 불러옵니다.</p></div><span class="graph-watermark">TRACE / RELATIONSHIP EXPLORER</span></div>
+          <div class="graph-legend"><span><i class="legend-line target"></i>대상 거래</span><span><i class="legend-line evidence"></i>탐지 근거</span><span><i class="legend-line"></i>주변 거래</span><span id="visible-count" class="visible-count">—</span></div>
+          <div id="graph-notice" class="graph-notice">계좌나 송금선을 선택하면 오른쪽에서 원본 정보를 확인할 수 있습니다.</div>
+        </section>
+        <div class="evidence-pane">
+          <section class="timeline-card" aria-label="선택 경로의 시간순 거래"><div class="card-heading"><div><span class="section-kicker">TRANSACTION SEQUENCE</span><h3><span id="timeline-title">시간순 근거</span> <span id="timeline-count" class="soft-chip">—</span></h3></div><span class="timeline-clock" aria-hidden="true">◷</span></div><p id="timeline-note" class="timeline-note">선택한 패턴의 원본 거래를 시간순으로 확인합니다.</p><ol id="timeline-list" class="timeline-list"></ol><div class="timeline-controls"><span id="timeline-progress" aria-live="polite">—</span><div><button id="flow-previous" class="text-button" disabled aria-label="이전 근거 거래">← 이전</button><button id="flow-next" class="text-button" disabled aria-label="다음 근거 거래">다음 →</button></div></div></section>
+          <aside class="inspector-card" aria-label="선택한 항목 상세"><div class="card-heading"><div><span class="section-kicker">SOURCE RECORD</span><h3>선택 항목 상세</h3></div><span class="selection-dot"></span></div><div id="inspector" class="inspector"><div class="empty-note">거래를 선택하면 계좌·금액·시각을 확인할 수 있습니다.</div></div></aside>
+        </div>
+      </div>
+      <section id="review-card" class="review-card" aria-label="RAG 근거와 검토 초안">
+        <div class="review-heading"><div><span class="section-kicker">GROUNDED REVIEW</span><h3>RAG 근거와 검토 초안</h3><p id="review-focus">거래를 선택해 주세요.</p></div><button id="review-prepare" class="button secondary" disabled>근거·초안 준비</button></div>
+        <div class="review-stage"><span id="review-state" class="review-state">근거 확인 대기</span><span>거래 사실 대조 → 인용·원문 확인 → 검토 초안</span></div>
+        <p id="review-error" class="review-warning" role="alert" hidden></p><button id="review-refresh-source" class="button secondary review-refresh-source" hidden>거래 다시 조회</button><p id="review-empty" class="review-empty">거래를 조회한 뒤 관련 근거를 확인할 수 있습니다.</p>
+        <div id="review-content" hidden><div class="review-boundary"><strong id="review-boundary"></strong><span>사람 검토 필수 · 제출용 최종 STR이 아닙니다.</span><small id="review-generation"></small></div>
+          <p class="review-scope-note">선택 경로의 관련 근거를 우선 표시합니다. 초안은 현재 조회 그래프와 전체 룰 결과를 포함합니다.</p>
+          <div class="review-tabs" role="tablist" aria-label="RAG 검토 보기"><button id="review-tab-draft" data-review-tab="draft" role="tab" aria-selected="true" aria-controls="review-panel-draft">검토 초안</button><button id="review-tab-sources" data-review-tab="sources" role="tab" aria-selected="false" aria-controls="review-panel-sources" tabindex="-1">연결 근거·원문</button><button id="review-tab-facts" data-review-tab="facts" role="tab" aria-selected="false" aria-controls="review-panel-facts" tabindex="-1">수치·거래 근거</button><button id="review-tab-checks" data-review-tab="checks" role="tab" aria-selected="false" aria-controls="review-panel-checks" tabindex="-1">검사 결과</button></div>
+          <div id="review-panel-draft" data-review-panel="draft" role="tabpanel" aria-labelledby="review-tab-draft"><div id="review-draft" class="review-panel"></div></div>
+          <div id="review-panel-sources" data-review-panel="sources" role="tabpanel" aria-labelledby="review-tab-sources" hidden><div id="review-sources" class="review-panel"></div></div>
+          <div id="review-panel-facts" data-review-panel="facts" role="tabpanel" aria-labelledby="review-tab-facts" hidden><div class="review-fact-toolbar"><span>값을 선택하면 원본 거래까지 확인할 수 있습니다.</span><label><input id="review-all-facts" type="checkbox">다른 경로의 사실도 표시</label></div><div class="review-fact-scroll"><table><thead><tr><th>확인한 사실</th><th>원본·계산 값</th><th>거래 연결</th></tr></thead><tbody id="review-facts-body"></tbody></table></div></div>
+          <div id="review-panel-checks" data-review-panel="checks" role="tabpanel" aria-labelledby="review-tab-checks" hidden><div id="review-checks" class="review-panel review-checks"></div></div>
+          <div class="review-actions"><button id="review-verify" class="button secondary" disabled>초안 재검사</button><div><button id="review-download-md" class="button secondary" disabled>초안 내려받기</button><button id="review-download-json" class="button secondary" disabled>근거 JSON</button></div></div>
+          <details class="review-identities"><summary>분석·문서 버전 확인</summary><pre id="review-identities"></pre></details>
+        </div>
+      </section>
+      <section class="detail-card"><div class="detail-tabs" role="tablist" aria-label="상세 보기"><button id="transactions-tab" role="tab" aria-selected="true" aria-controls="transactions-panel" class="active">거래 내역 <span id="table-count">—</span></button><button id="findings-tab" role="tab" aria-selected="false" aria-controls="findings-panel">탐지 패턴과 근거 <span id="findings-count">—</span></button><span class="detail-source">원본 거래 기준</span></div>
+        <div id="transactions-panel" role="tabpanel" aria-labelledby="transactions-tab"><div class="table-toolbar"><span>거래를 선택하면 그래프의 해당 송금선이 강조됩니다.</span><label><input id="only-evidence" type="checkbox">탐지 근거만</label></div><div class="table-scroll"><table><thead><tr><th>거래 ID</th><th>원본 시각</th><th>보내는 계좌</th><th>받는 계좌</th><th class="amount-cell">송금액</th><th>구분</th></tr></thead><tbody id="transactions-body"><tr><td colspan="6" class="empty-note">조회 대기 중입니다.</td></tr></tbody></table></div><div class="table-pagination"><span id="table-range">—</span><div><button id="previous-page" class="text-button" disabled>이전</button><button id="next-page" class="text-button" disabled>다음</button></div></div></div>
+        <div id="findings-panel" role="tabpanel" aria-labelledby="findings-tab" hidden><div id="findings-list" class="findings-list"></div></div>
+      </section>
+      <footer class="workspace-footer"><span><i class="tiny-dot"></i> 읽기 전용 · 실제 DB 조회</span><span id="query-time">시연용 부분 그래프이며 전체 거래 원장을 포함하지 않습니다.</span></footer>
+    </div>
+  </main>
+</div>
+<dialog id="review-evidence-dialog" class="review-evidence-dialog"><div class="review-dialog-heading"><h3 id="review-evidence-title">원본 근거 확인</h3><button id="review-evidence-close" class="icon-button" aria-label="근거 창 닫기">×</button></div><div id="review-evidence-body" class="review-evidence-body"></div></dialog>
+<dialog id="help-dialog"><button id="help-close" class="icon-button dialog-close" aria-label="안내 닫기">×</button><span class="eyebrow">QUICK GUIDE</span><h2>거래 흐름 확인하기</h2><ol><li>분석할 거래와 탐지 패턴을 선택합니다.</li><li>핵심 경로에서 집금·분산·순환 구조와 룰 이유를 확인합니다.</li><li>시간순 근거를 누르거나 이전·다음으로 이동하면 해당 송금선이 강조됩니다.</li><li>주변 연결에서 조회 범위의 나머지 거래도 확인합니다.</li><li>관련 근거·검토 초안에서 인용 원문과 수치의 거래 근거를 확인합니다.</li></ol><p>노드의 역할 이름은 화면 설명용입니다. 기업명이나 실소유자 이름이 아니며 전체 계좌 ID는 선택 상세에 표시합니다. 원본 시각에는 시간대 정보가 없습니다. 같은 시각의 거래 순서, 동일 자금 여부, 거래 목적은 이 그래프만으로 확정할 수 없습니다.</p></dialog>
+</body></html>

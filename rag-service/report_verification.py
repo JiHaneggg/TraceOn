@@ -7,6 +7,7 @@ from corpus import canonical, digest
 from evidence import build_context, validate_draft
 from evidence_lookup import EvidenceError
 from reports import render_report, validate_plan
+from report_metrics import audit_report
 
 
 def verify_report(repository, graph, rule_result, report, query=None):
@@ -54,6 +55,7 @@ def verify_report(repository, graph, rule_result, report, query=None):
                                      "semanticEntailmentVerified": False}
         if not fitness_ok:
             errors.append("evidence_fitness_or_required_anchor_mismatch")
+    expected_markdown = None
     try:
         generation = report["generation"]
         if not isinstance(generation, dict) or generation.get("method") not in {"deterministic_template", "openai_structured_plan"}:
@@ -70,6 +72,7 @@ def verify_report(repository, graph, rule_result, report, query=None):
             raise ValueError("Invalid provider metadata")
         validate_plan(context, report["plan"])
         expected = render_report(context, report["plan"], generation)
+        expected_markdown = expected["markdown"]
         mismatched = [field for field in expected if field != "reportId" and report.get(field) != expected[field]]
         mismatched += [field for field in report if field not in expected]
         checks["renderedContent"] = {"valid": not mismatched, "mismatchedFields": mismatched}
@@ -89,5 +92,6 @@ def verify_report(repository, graph, rule_result, report, query=None):
             "contextId": context["contextId"], "reportId": report.get("reportId"),
             "humanReviewRequired": True, "readyForSubmission": False,
             "verificationScope": "backend_graph_facts_pinned_snapshots_and_controlled_rendering",
+            "integrityMetrics": audit_report(context, report, expected_markdown),
             "semanticEntailmentVerified": False, "externalLedgerChecked": False,
             "providerCallAuthenticated": False}

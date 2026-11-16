@@ -12,7 +12,7 @@ from datetime import date
 import json
 
 from corpus import DEFAULT_INDEX, canonical, digest
-from query_processing import ENGLISH_STOP, english_term, expand_query, missing_capability
+from query_processing import ENGLISH_STOP, english_term, query_profile, missing_capability
 from search_intent import prioritize
 from source_presentation import source_display, source_groups, law_selector, matches_law_selector, named_statutes
 from evidence_fit import validate_policy
@@ -129,7 +129,8 @@ class Index:
             scoped["assessment"]["requirements"].append({"kind":"existing_scope_filter","requested":required_kind,
                 "available":False,"reasonCode":"requested_scope_unavailable","message":reason})
         candidates = []
-        expanded = expand_query(query)
+        profile = query_profile(query)
+        expanded = profile["expanded"]
         query_tokens = set(tokenize(expanded))
         for row, counter in zip(self.chunks, self.tokens):
             if not scope_supported:
@@ -162,7 +163,7 @@ class Index:
         candidates.sort(key=lambda row: (-row["retrievalScore"], row["chunkId"]))
         ranking = {"intent": "lexical", "requestedConcepts": [], "prioritizedChunkIds": []}
         if self.selection_policy == "sections":
-            candidates, ranking = prioritize(candidates, query)
+            candidates, ranking = prioritize(candidates, query, signals=profile["signals"])
         hits, selection = select_hits(candidates, top_k, self.selection_policy)
         presentation = {}
         if scoped:
@@ -183,6 +184,9 @@ class Index:
                 "method": "bm25_words_korean_bigrams", "corpusSha256": self.corpus_hash,
                 "selection": selection,
                 "ranking": ranking,
+                **({"queryExpansion": {"version": profile["version"], "signals": profile["signals"],
+                                       "sourceTextModified": False, "scopeGuardsAppliedFirst": True}}
+                   if profile["signals"] else {}),
                 "filters": {"jurisdiction": jurisdiction, "sourceKind": source_kind, "legalAsOf": legal_as_of}, "hits": hits,
                 "notice": "검색은 관련 본문을 반환합니다. 의미적 뒷받침·현재 법률 적용은 별도 검토가 필요하며 외국 사례를 한국 기준으로 적용하지 않습니다."}
 

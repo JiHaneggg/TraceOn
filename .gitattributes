@@ -28,3 +28,10 @@ rag-service/evaluation_queries*.json -text -eol whitespace=cr-at-eol
 *.jar binary
 *.png binary
 *.jpg binary
+
+# Local viewer assets and pinned vendor hashes must stay identical across OSes.
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+graph-viewer/static/vendor/CYTOSCAPE-LICENSE text eol=lf

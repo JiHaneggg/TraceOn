@@ -17,18 +17,33 @@ if __name__=='__main__':
     parser=argparse.ArgumentParser()
     parser.add_argument('--baseline-ref',help='Optional local historical Git ref; the shared snapshot needs no old history')
     parser.add_argument('--baseline-file',type=Path,default=ROOT/'rag-service/baselines/retrieval_v3_published.py')
+    parser.add_argument('--baseline-query-file',type=Path,default=ROOT/'rag-service/baselines/query_processing_v3_published.py')
     parser.add_argument('--index',type=Path,default=ROOT/'data/rag/versions/a811aa50fffe640332a25843af96b1ba39ba77aada9a3020b20acf8693c51263.json')
     parser.add_argument('--output',type=Path,default=ROOT/'artifacts/rag-evidence-search.json')
     args=parser.parse_args()
     if args.output.exists():raise SystemExit('Existing comparison preserved; choose a new --output')
     raw=(subprocess.check_output(['git','show',args.baseline_ref+':rag-service/retrieval.py'],cwd=ROOT)
          if args.baseline_ref else args.baseline_file.read_bytes())
+    query_raw=(subprocess.check_output(['git','show',args.baseline_ref+':rag-service/query_processing.py'],cwd=ROOT)
+               if args.baseline_ref else args.baseline_query_file.read_bytes())
     args.output.parent.mkdir(parents=True,exist_ok=True)
     saved=args.output.parent/('evidence-baseline-'+digest(raw)[:16]+'.py')
     if not saved.exists():saved.write_bytes(raw)
     assert saved.read_bytes()==raw
-    spec=importlib.util.spec_from_file_location('traceon_shipped_v3',saved)
-    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    query_saved=args.output.parent/('query-baseline-'+digest(query_raw)[:16]+'.py')
+    if not query_saved.exists():query_saved.write_bytes(query_raw)
+    assert query_saved.read_bytes()==query_raw
+    query_spec=importlib.util.spec_from_file_location('traceon_shipped_v3_query',query_saved)
+    query_module=importlib.util.module_from_spec(query_spec);query_spec.loader.exec_module(query_module)
+    # Freeze the baseline dependency too: the historic retriever imports its
+    # normalization functions at load time. Never score it with today's aliases.
+    active_query_module=sys.modules['query_processing']
+    try:
+        sys.modules['query_processing']=query_module
+        spec=importlib.util.spec_from_file_location('traceon_shipped_v3',saved)
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    finally:
+        sys.modules['query_processing']=active_query_module
     baseline=module.Index(args.index);candidate=Index(args.index)
     questions,query_hash=load_questions(candidate,ROOT/'rag-service/evaluation_queries_v3.json')
     before=[evaluate_case(baseline,row,questions['sections']) for row in questions['cases']]
@@ -50,7 +65,8 @@ if __name__=='__main__':
                        'hits':[{'chunkId':h['chunkId'],'section':h['section']} for h in result['hits']]})
     files=['retrieval.py','search_intent.py','evidence.py','evidence_lookup.py','report_verification.py','reports.py']
     result={'kind':'same_gold_development_regression_not_independent_evaluation','baselineRef':args.baseline_ref,
-            'baselineSourceSha256':digest(raw),'corpusSha256':candidate.corpus_hash,'questionsSha256':query_hash,
+            'baselineSourceSha256':digest(raw),'baselineQuerySourceSha256':digest(query_raw),
+            'corpusSha256':candidate.corpus_hash,'questionsSha256':query_hash,
             'implementationSha256':{name:digest((ROOT/'rag-service'/name).read_bytes()) for name in files},
             'goldChanged':False,'baseline':summarize(before),'candidate':summarize(after),'changes':changes,
             'definitionAndProcedureProbes':probes,'candidateCases':after,
