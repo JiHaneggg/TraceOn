@@ -52,6 +52,9 @@ class BoundedStore:
                 raise ReviewError(409, 'review_expired', '조회 정보가 만료됐습니다. 거래를 다시 조회한 뒤 초안을 준비해 주세요.')
             return deepcopy(entry[1])
 
+    def discard(self, token):
+        with self.lock:self.items.pop(token, None)
+
 
 class LocalRagClient:
     def call(self, method, path, body=None):
@@ -89,6 +92,9 @@ class ReviewBridge:
         token = self.snapshots.put(payload)
         return {**payload, 'reviewSnapshotId': token}
 
+    def invalidate_snapshot(self, snapshot_id):
+        self.snapshots.discard(snapshot_id)
+
     def prepare(self, snapshot_id, finding_index):
         payload = self.snapshots.get(snapshot_id)
         findings = payload['ruleResult']['findings']
@@ -119,6 +125,7 @@ class ReviewBridge:
         source = {'targetTxId': payload['graph']['targetTxId'], 'queriedAt': payload['source']['queriedAt'],
                   'graphSha256': expected_hash, 'reportScope': 'complete_queried_graph', 'llmCalled': False}
         record = {'snapshotId': snapshot_id, 'focus': focus, 'inputs': inputs, 'result': result, 'source': source}
+        self.snapshots.get(snapshot_id)
         review_id = self.reviews.put(record)
         return {'reviewId': review_id, 'snapshotId': snapshot_id, 'focus': focus, 'source': source, **result}
 
@@ -153,6 +160,7 @@ class ReviewBridge:
                 raise ValueError('Citation identity mismatch')
         except (ValueError, KeyError, TypeError):
             raise ReviewError(502, 'citation_identity_mismatch', '인용과 저장 원문의 버전이 일치하지 않습니다.') from None
+        self.record(review_id)
         return result
 
     def fact(self, review_id, fact_id):
@@ -174,6 +182,7 @@ class ReviewBridge:
                 raise ValueError('Fact/source transaction mismatch')
         except (ValueError, KeyError, TypeError):
             raise ReviewError(502, 'fact_identity_mismatch', '사실과 원본 거래의 연결이 일치하지 않습니다.') from None
+        self.record(review_id)
         return result
 
     def verify(self, review_id):
@@ -184,6 +193,7 @@ class ReviewBridge:
             self.check_verification(verification, report)
         except (ValueError, KeyError, TypeError):
             raise ReviewError(502, 'verification_identity_mismatch', '초안 검증 결과의 연결을 확인하지 못했습니다.') from None
+        self.record(review_id)
         return {'reviewId': review_id, 'report': report, 'verification': verification}
 
     def download(self, review_id, format_name):

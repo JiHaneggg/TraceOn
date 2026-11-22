@@ -62,6 +62,7 @@ data/demo/
 data/evaluation/
 artifacts/
 data/rag/
+data/history/
 
 # ===== OS =====
 .DS_Store

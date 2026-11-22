@@ -80,6 +80,26 @@ class ReviewBridgeTest(unittest.TestCase):
         self.client.modify=lambda result:result['context'].update(graphSha256='0'*64)
         with self.assertRaises(ReviewError) as caught:self.prepare()
         self.assertEqual(caught.exception.status,502)
+    def test_invalidated_graph_blocks_all_existing_review_operations(self):
+        result=self.prepare();self.bridge.invalidate_snapshot(self.graph['reviewSnapshotId'])
+        before=len(self.client.calls)
+        for operation in [lambda:self.prepare(),lambda:self.bridge.verify(result['reviewId']),
+                          lambda:self.bridge.fact(result['reviewId'],'target.amountPaid'),
+                          lambda:self.bridge.citation(result['reviewId'],result['report']['citations'][0]['chunkId']),
+                          lambda:self.bridge.download(result['reviewId'],'json')]:
+            with self.assertRaises(ReviewError) as caught:operation()
+            self.assertEqual(caught.exception.status,409)
+        self.assertEqual(len(self.client.calls),before)
+    def test_graph_invalidated_during_prepare_does_not_return_a_review(self):
+        self.client.modify=lambda response:self.bridge.invalidate_snapshot(self.graph['reviewSnapshotId'])
+        with self.assertRaises(ReviewError) as caught:self.prepare()
+        self.assertEqual(caught.exception.status,409)
+        self.assertEqual(len(self.bridge.reviews.items),0)
+    def test_graph_invalidated_during_verify_does_not_return_a_pass(self):
+        result=self.prepare()
+        self.client.modify=lambda response:self.bridge.invalidate_snapshot(self.graph['reviewSnapshotId'])
+        with self.assertRaises(ReviewError) as caught:self.bridge.verify(result['reviewId'])
+        self.assertEqual(caught.exception.status,409)
     def test_wrong_corpus_citation_is_rejected(self):
         result=self.prepare();self.client.modify=lambda result:result.update(corpusSha256='0'*64)
         with self.assertRaises(ReviewError):self.bridge.citation(result['reviewId'],result['report']['citations'][0]['chunkId'])

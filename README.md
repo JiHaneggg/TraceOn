@@ -102,3 +102,10 @@ cd backend; .\gradlew.bat bootRun
 최신 로컬 보강: [순환 유형 공식 자료](docs/rag-cycle-sources.md)로 10문서·61청크, [멘토 검수용 질문 초안 24개](docs/mentor-review-questions.md)를 준비했습니다. [제어형 보고서 검증 평가](docs/verifier-evaluation.md)는 정상30·결함30개를 고정해 구조적 검증을 측정했으며 실제 LLM 의미 판단·재시도는 미측정입니다. 기존 데이터·룰·RAG 검사 251개와 그래프/연결 검사 55개가 포함됩니다. 검토 초안은 템플릿 기반이며 실제 LLM 의미 판단·재시도는 미측정입니다.
 
 로컬 그래프 시각화: [실행·검증 안내](docs/graph-viewer.md). `scripts/start-graph-viewer.ps1` 실행 후 `http://127.0.0.1:8093`에서 거래 선택·실제 Neo4j 조회·근거 경로 강조·원본 상세를 확인할 수 있습니다. RAG 근거·원문·거래 사실 조회·초안 재검사·다운로드까지 연결했습니다. [그래프→RAG 연결 안내](docs/graph-rag-integration.md)를 참고하세요. Spring 운영 API와 지속적인 분석 이력 저장은 후속입니다.
+
+DB 조회 점검: [진단 기준·관측 결과](docs/db-query-audit.md). 현재 적재된 시연 자료의 원본 정합성·조회 상한에 따른 생략·지연·인덱스 실행 계획을 읽기 전용으로 확인합니다. 거래 포함 비율과 AML Recall을 구분하며, 운영 조회 상한과 룰은 변경하지 않습니다.
+
+
+### 로컬 분석 이력 저장·다시 열기
+
+그래프·룰만 저장하거나 준비된 RAG 초안·인용 절 본문까지 함께 저장하고, 서버 재시작 후 당시 결과를 다시 연다. [사용법·API·저장 구조](docs/analysis-history.md)를 참고한다. 로컬 이력은 `data/history/`에 보관하며 Git에서 제외한다. 현재 DB·규정 재검증과 사람의 최종 승인은 별도다.

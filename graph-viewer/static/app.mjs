@@ -1,16 +1,19 @@
 import {RelationshipGraph} from './graph.mjs';
 import {accountParts,accountShort,accountActivity,amountText,decimalText,timeText,durationText,ruleName,visibleTransactionIds} from './format.mjs';
-import {buildFlow,primaryFinding} from './flow.mjs';
+import {buildFlow,primaryFinding,sourceSeconds} from './flow.mjs';
 import {ReviewPanel} from './review.mjs';
+import {assertExpandedPayload,expandableAccounts} from './expansion-format.mjs';
+import {HistoryPanel} from './history.mjs';
+import {assertArchive,archiveNotice} from './history-format.mjs';
 
 const $=id=>document.getElementById(id);
 function element(tag,className,text){const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=String(text);return node;}
-const state={cases:[],payload:null,selectedId:null,selectedKind:'transaction',selectedKey:null,mode:'evidence',finding:null,flow:null,page:0,request:0,controller:null};
-let graph,review;
+const state={cases:[],payload:null,selectedId:null,selectedKind:'transaction',selectedKey:null,mode:'evidence',finding:null,flow:null,page:0,request:0,controller:null,expanding:false,expansionInvalid:false,expansionError:''};
+let graph,review,historyPanel;
 
 function connection(ok){$('connection').className='connection '+(ok?'connected':'failed');$('connection').querySelector('span').textContent=ok?'실제 DB 연결됨':'DB 조회 확인 필요';}
 function overlay(title,message,error=false){$('graph-overlay').hidden=false;$('graph-overlay').classList.toggle('error',error);$('overlay-title').textContent=title;$('overlay-message').textContent=message;}
-async function api(path,signal){const response=await fetch(path,{signal,cache:'no-store'});const data=await response.json();if(!response.ok)throw new Error(data.message||'조회를 완료하지 못했습니다.');return data;}
+async function api(path,signal,body){const response=await fetch(path,{signal,cache:'no-store',...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const data=await response.json();if(!response.ok){const error=new Error(data.message||'조회를 완료하지 못했습니다.');error.code=data.error;throw error;}return data;}
 
 function renderCases(){
   const query=$('case-search').value.trim().toLowerCase();
@@ -27,7 +30,7 @@ function renderCases(){
 }
 
 function updateModes(){document.querySelectorAll('[data-mode]').forEach(button=>{const active=button.dataset.mode===state.mode;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});}
-function setMode(mode,finding=state.finding){state.mode=mode;state.finding=finding;state.flow=buildFlow(state.payload,finding);updateModes();graph.setMode(mode,finding);renderFlow();updateNotice();graph.select(state.selectedKind,state.selectedKey);review.setContext(state.payload,finding);}
+function setMode(mode,finding=state.finding){state.mode=mode;state.finding=finding;state.flow=buildFlow(state.payload,finding);updateModes();graph.setMode(mode,finding);renderFlow();updateNotice();graph.select(state.selectedKind,state.selectedKey);if(!state.payload.history)review.setContext(state.expanding||state.expansionInvalid?null:state.payload,finding);}
 function updateNotice(){
   if(!state.payload)return;
   const p=state.payload;let message;
@@ -36,11 +39,14 @@ function updateNotice(){
   else message=`대상 거래 시각 이전 ${p.graph.meta.windowDays||$('days').value}일 · ${p.graph.meta.hops}홉 범위의 연결을 표시합니다.`;
   if(p.graph.meta.truncated)message+=' 조회 상한에 도달해 일부 경로가 생략됐습니다.';
   if(!graph.labels)message+=' 금액은 거래를 선택하거나 ‘전체 금액’으로 확인하세요.';
+  if(p.history)message='저장 당시 그래프입니다. '+message;
   $('graph-notice').textContent=message;
 }
 
 function resetDetails(){
-  state.payload=null;state.finding=null;state.flow=null;state.page=0;graph.clear();review.setContext(null,null);
+  state.payload=null;state.finding=null;state.flow=null;state.page=0;state.expanding=false;state.expansionInvalid=false;state.expansionError='';graph.clear();review.setContext(null,null);renderExpansion();
+  $('history-view').hidden=true;for(const id of ['hops','days'])$(id).disabled=false;historyPanel?.sync();
+  $('workspace-source-label').textContent='읽기 전용 · 실제 DB 조회';
   for(const id of ['rule-score','account-count','transaction-count','pattern-count','table-count','findings-count'])$(id).textContent='—';
   $('score-fill').style.width='0%';$('score-state').textContent='조회 중';$('hop-caption').textContent='선택한 범위를 DB에서 조회합니다';
   $('evidence-caption').textContent='룰 근거 확인 중';$('graph-scope').textContent='조회 중';$('visible-count').textContent='—';$('table-range').textContent='—';
@@ -65,13 +71,76 @@ async function loadTransaction(id){
     if(request!==state.request)return;
     if(payload.graph.targetTxId!==id)throw new Error('선택한 거래와 응답이 일치하지 않습니다.');
     state.payload=payload;state.finding=primaryFinding(payload);state.flow=buildFlow(payload,state.finding);state.mode='evidence';connection(true);renderMetrics();updateModes();graph.setData(payload,state.mode,state.finding);$('labels').setAttribute('aria-pressed',String(graph.labels));renderFlow();updateNotice();
-    selectItem('transaction',id,false);renderFindings();renderTable();review.setContext(payload,state.finding);$('graph-overlay').hidden=true;$('export').disabled=false;
+    selectItem('transaction',id,false);renderFindings();renderTable();renderExpansion();review.setContext(payload,state.finding);$('graph-overlay').hidden=true;$('export').disabled=false;
     const time=new Date(payload.source.queriedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
     $('query-time').textContent=`${time} DB 조회 · 시연용 부분 데이터이며 전체 원장이 아닙니다.`;
   }catch(error){
     if(error.name==='AbortError'||request!==state.request)return;
     connection(false);overlay('거래를 불러오지 못했습니다',error.message,true);$('score-state').textContent='조회 실패';
     $('inspector').replaceChildren(element('div','empty-note','상단의 새로 조회 버튼으로 다시 시도할 수 있습니다.'));
+  }
+}
+
+function renderExpansion(preferred=$('expand-account').value){
+  if(state.payload?.history){$('expand-account').replaceChildren(element('option','','저장본은 추가 조회하지 않습니다.'));$('expand-account').disabled=true;$('expand-load').disabled=true;$('expand-load').textContent='저장본 읽기 전용';$('expand-summary').textContent=`저장 당시 추가 조회 ${state.payload.accountExpansion?.pagesUsed||0}회`;$('expand-status').textContent='추가 조회하려면 현재 자료로 새 분석을 시작하세요.';return;}
+  const status=state.payload?.accountExpansion,select=$('expand-account');select.replaceChildren();
+  const candidates=expandableAccounts(state.payload);
+  if(!candidates.length){const option=element('option','','추가 조회할 계좌 없음');option.value='';select.append(option);}
+  for(const row of candidates){const option=element('option','',`${row.accountKey} · ${row.reason==='more_history'?'생략된 거래':'새 연결 계좌'}`);option.value=row.accountKey;select.append(option);}
+  if(candidates.some(row=>row.accountKey===preferred))select.value=preferred;
+  select.disabled=state.expanding||state.expansionInvalid||!candidates.length;
+  $('expand-load').disabled=select.disabled;$('expand-load').textContent=state.expanding?'추가 조회 중…':'최대 25건 더 조회';
+  $('expand-summary').textContent=status?`추가 조회 ${status.pagesUsed} / ${status.maxPages}회 · 새 거래 ${status.totalAddedTransactions}건 · 같은 기간·홉 범위 유지`:'거래를 선택하면 추가 조회 가능 계좌를 확인합니다.';
+  const last=status?.lastPage;
+  $('expand-status').classList.toggle('expansion-error',Boolean(state.expansionError));
+  $('expand-status').textContent=state.expansionError||(state.expanding?'선택 계좌의 다음 거래를 확인하고 있습니다.':!status?.enabled?'자료 버전·조회 이력을 확인한 결과에서만 추가 조회할 수 있습니다.':status.budgetReached?'안전한 조회 상한에 도달했습니다. 남은 거래는 이 화면에서 모두 조회됐다고 볼 수 없습니다.':!candidates.length&&status.candidates.length?'계좌별 추가 조회 상한에 도달했습니다. 생략된 거래가 남아 있을 수 있습니다.':last?`${last.readRows}건 확인 → 새 거래 ${last.addedTransactions}건, 중복 ${last.duplicateTransactions}건. 이전 초안을 지웠습니다. 새 그래프로 근거·초안을 다시 준비하세요.${candidates.length?'':' 현재 범위에서 추가 조회할 계좌가 없습니다.'}`:candidates.length?'생략된 계좌를 선택하거나 계좌 상세에서 추가 조회하세요. 계좌당 최대 4회, 전체 1,000거래까지 조회합니다.':'현재 적재 자료와 선택 범위에서 추가 조회할 계좌가 없습니다. 전체 원장을 확인했다는 뜻은 아닙니다.');
+}
+
+async function expandAccount(key=$('expand-account').value){
+  if(state.expanding||state.expansionInvalid||!expandableAccounts(state.payload).some(row=>row.accountKey===key))return;
+  const before=state.payload,ruleId=state.finding?.ruleId;state.controller?.abort();state.controller=new AbortController();const request=++state.request;
+  state.expanding=true;state.expansionError='';$('export').disabled=true;review.setContext(null,null);renderExpansion(key);
+  historyPanel.sync();
+  if(state.selectedKind==='account')renderAccountInspector(state.selectedKey);
+  overlay('선택 계좌의 거래를 더 확인합니다','같은 기간·홉 범위에서 최대 25건을 조회하고 룰 근거를 다시 계산합니다.');
+  try{
+    const payload=await api('/api/graph/expand',state.controller.signal,{snapshotId:before.reviewSnapshotId,accountKey:key});
+    if(request!==state.request)return;
+    assertExpandedPayload(before,payload);
+    state.payload=payload;state.finding=payload.ruleResult.findings.find(row=>row.ruleId===ruleId)||primaryFinding(payload);state.flow=buildFlow(payload,state.finding);state.mode='all';state.page=0;
+    renderMetrics();updateModes();graph.setData(payload,state.mode,state.finding);$('labels').setAttribute('aria-pressed',String(graph.labels));renderFlow();renderFindings();renderTable();updateNotice();selectItem('account',key,false);
+    review.setContext(payload,state.finding);$('graph-overlay').hidden=true;connection(true);
+    $('query-time').textContent=`추가 조회 ${payload.accountExpansion.pagesUsed}회 · 이전 초안 무효화 · 시연용 부분 데이터`;
+  }catch(error){
+    if(error.name==='AbortError'||request!==state.request)return;
+    state.expansionError=error.message;
+    state.expansionInvalid=['dataset_changed','source_changed','graph_superseded','expansion_expired','review_expired'].includes(error.code)||!error.code;
+    if(state.expansionInvalid)overlay('거래를 다시 조회해 주세요',error.message,true);
+    else{$('graph-overlay').hidden=true;review.setContext(before,state.finding);}
+  }finally{
+    if(request===state.request){state.expanding=false;$('export').disabled=state.expansionInvalid;renderExpansion(key);if(state.selectedKind==='account')renderAccountInspector(state.selectedKey);historyPanel.sync();}
+  }
+}
+
+async function openHistory(id){
+  state.controller?.abort();state.controller=new AbortController();const request=++state.request;
+  resetDetails();overlay('저장 당시 분석을 불러옵니다','현재 DB나 규정을 새로 조회하지 않습니다.');
+  try{
+    const result=assertArchive(await api('/api/history/open?'+new URLSearchParams({historyId:id}),state.controller.signal));
+    if(request!==state.request)return;
+    const p=result.payload;state.payload=p;state.selectedId=p.graph.targetTxId;
+    const index=result.review?.focus.findingIndex;state.finding=Number.isInteger(index)?p.ruleResult.findings[index]:primaryFinding(p);state.flow=buildFlow(p,state.finding);state.mode='evidence';
+    $('hops').value=p.graph.meta.hops;const days=(sourceSeconds(p.graph.asOf)-sourceSeconds(p.graph.windowStart))/86400;$('days').value=days;
+    for(const name of ['hops','days'])$(name).disabled=true;
+    $('target-id').textContent=state.selectedId;$('target-flow').textContent=`${accountShort(p.target.fromAccountKey)} → ${accountShort(p.target.toAccountKey)}`;$('target-amount').textContent=amountText(p.target.amountPaid,p.target.paymentCurrency);$('mobile-cases').value=state.selectedId;renderCases();
+    renderMetrics();updateModes();graph.setData(p,state.mode,state.finding);$('labels').setAttribute('aria-pressed',String(graph.labels));renderFlow();renderFindings();renderTable();renderExpansion();updateNotice();selectItem('transaction',state.selectedId,false);
+    review.setArchived(p,result.review,result.history);$('graph-overlay').hidden=true;$('export').disabled=false;
+    $('history-view').hidden=false;$('history-view-text').textContent=archiveNotice(result.history);$('query-time').textContent=archiveNotice(result.history);
+    $('connection').className='connection';$('connection').querySelector('span').textContent='저장본 보기 · DB 미조회';historyPanel.sync();
+    $('workspace-source-label').textContent='저장 당시 결과 · 현재 자료 미조회';
+  }catch(error){
+    if(error.name==='AbortError'||request!==state.request)return;
+    resetDetails();overlay('저장본을 열지 못했습니다',error.message,true);throw error;
   }
 }
 
@@ -125,7 +194,7 @@ function renderFlow(){
   const stats=element('div','flow-stats');
   for(const text of [`${flow.rows.length}건 ${flow.finding?'근거':'대상 거래'}`,`${flow.accounts.length}개 계좌`,`경과 ${durationText(flow.elapsedSeconds)}`])stats.append(element('span','',text));
   box.append(stats,element('p','flow-total',`${flow.totalLabel} ${flow.totalsText}`),element('p','flow-period',`${timeText(flow.start)} → ${timeText(flow.end)} · 원본 시각`));
-  const evidence=element('button','flow-review-button','관련 근거·검토 초안 확인 ↓');evidence.addEventListener('click',()=>{review.prepare();$('review-card').scrollIntoView({behavior:'smooth',block:'start'});});box.append(evidence);
+  const evidence=element('button','flow-review-button','관련 근거·검토 초안 확인 ↓');evidence.addEventListener('click',()=>{if(state.expanding||state.expansionInvalid)return;if(!state.payload.history)review.prepare();$('review-card').scrollIntoView({behavior:'smooth',block:'start'});});box.append(evidence);
   $('timeline-count').textContent=flow.rows.length;
   $('timeline-title').textContent=flow.finding?'시간순 근거':'대상 거래 시각';
   $('timeline-note').textContent=flow.kind==='TARGET'?'선택한 대상 거래의 원본 시각과 금액입니다. 현재 조회 범위에서 룰 근거가 발견되지 않았습니다.':flow.kind==='CYCLE'?'번호는 룰이 반환한 순환 경로 순서입니다. 같은 시각의 거래는 실제 선후를 확정할 수 없습니다.':'번호는 이 패턴의 거래 시각순입니다. 같은 시각은 ID순으로 나열하며, 서로 이어진 동일 자금이라는 의미는 아닙니다.';
@@ -176,6 +245,7 @@ function renderAccountInspector(key){
   const tags=element('div','tags');tags.append(element('span','tag',`은행 ID ${bank}`));
   if(key===p.target.fromAccountKey||key===p.target.toAccountKey)tags.append(element('span','tag target','대상 거래 연결'));
   box.append(tags,inspectRow('원본 계좌 식별자',account));
+  if(expandableAccounts(p).some(row=>row.accountKey===key)){const button=element('button','button secondary account-expand-button','이 계좌 거래 최대 25건 더 조회');button.disabled=state.expanding||state.expansionInvalid;button.addEventListener('click',()=>expandAccount(key));box.append(button);}
   const counts=element('div','inspect-summary');for(const [label,count] of [['입금 거래',incoming.length],['출금 거래',outgoing.length]]){const tile=element('div');tile.append(element('span','',label),element('strong','',`${count}건`));counts.append(tile);}box.append(counts);
   box.append(element('span','inspector-kicker',`조회 범위 내 연결 거래 · ${related.length}건`));
   for(const edge of related.slice(0,8)){const activity=accountActivity(edge,key);const button=element('button','inspect-tx-button',edge.txId);button.append(element('span','',`${activity.direction} · ${amountText(activity.amount,activity.currency)}`));button.addEventListener('click',()=>selectItem('transaction',edge.txId));box.append(button);}
@@ -220,10 +290,13 @@ function changeTab(name){const transactions=name==='transactions';$('transaction
 async function initialize(){
   try{graph=new RelationshipGraph($('graph'),selectItem,counts=>{$('visible-count').textContent=`표시 ${counts.accounts}계좌 · ${counts.transactions}거래`;});}
   catch(error){overlay('그래프를 표시할 수 없습니다',error.message,true);return;}
-  review=new ReviewPanel(txId=>{selectItem('transaction',txId);$('flow-summary').scrollIntoView({behavior:'smooth',block:'start'});},()=>loadTransaction(state.selectedId));
+  review=new ReviewPanel(txId=>{selectItem('transaction',txId);$('flow-summary').scrollIntoView({behavior:'smooth',block:'start'});},()=>loadTransaction(state.selectedId),()=>historyPanel?.sync());
+  historyPanel=new HistoryPanel(()=>({payload:state.payload,reviewId:review.result?.reviewId||null,busy:state.expanding||state.expansionInvalid||review.pending}),openHistory);
+  $('history-live').addEventListener('click',()=>loadTransaction(state.selectedId));
   $('help-open').addEventListener('click',()=>$('help-dialog').showModal());$('help-close').addEventListener('click',()=>$('help-dialog').close());
   $('case-search').addEventListener('input',renderCases);$('mobile-cases').addEventListener('change',event=>loadTransaction(event.target.value));
   $('refresh').addEventListener('click',()=>state.selectedId?loadTransaction(state.selectedId):loadCases());
+  $('expand-load').addEventListener('click',()=>expandAccount());
   for(const id of ['hops','days'])$(id).addEventListener('change',()=>loadTransaction(state.selectedId));
   document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>setMode(button.dataset.mode)));
   $('zoom-in').addEventListener('click',()=>graph.zoom(1.3));$('zoom-out').addEventListener('click',()=>graph.zoom(1/1.3));
@@ -234,15 +307,16 @@ async function initialize(){
   $('only-evidence').addEventListener('change',()=>{state.page=0;renderTable();});
   $('previous-page').addEventListener('click',()=>{state.page--;renderTable();});$('next-page').addEventListener('click',()=>{state.page++;renderTable();});
   $('export').addEventListener('click',()=>{if(!state.payload)return;const blob=new Blob([JSON.stringify(state.payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`traceon-${state.payload.graph.targetTxId}-${state.payload.graph.meta.hops}hop.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
-  await loadCases();
+  await Promise.allSettled([loadCases(),historyPanel.reload()]);
 }
 
 async function loadCases(){
+  const generation=state.request;
   try{
-    const data=await api('/api/cases');state.cases=data.items;connection(true);renderCases();
+    const data=await api('/api/cases');state.cases=data.items;if(!state.payload?.history)connection(true);renderCases();
     const select=$('mobile-cases');select.replaceChildren();for(const row of data.items){const option=element('option','',`${row.txId} · ${amountText(row.amountPaid,row.paymentCurrency)}`);option.value=row.txId;select.append(option);}
-    await loadTransaction(state.selectedId||data.items[0]?.txId);
-  }catch(error){connection(false);overlay('DB 연결을 확인해 주세요',error.message,true);$('case-list').replaceChildren(element('div','empty-note',error.message));}
+    if(generation===state.request&&!state.payload)await loadTransaction(state.selectedId||data.items[0]?.txId);
+  }catch(error){if(generation!==state.request||state.payload?.history)return;connection(false);overlay('DB 연결을 확인해 주세요',error.message,true);$('case-list').replaceChildren(element('div','empty-note',error.message));}
 }
 
 if(document.readyState==='complete')initialize();else window.addEventListener('DOMContentLoaded',initialize,{once:true});

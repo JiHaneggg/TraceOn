@@ -18,6 +18,7 @@ export class RelationshipGraph {
           label:'data(displayLabel)','font-size':11,'font-family':'Consolas, monospace',color:'#829189',
           'text-rotation':'autorotate','text-background-color':'#fbfcf8','text-background-opacity':.95,'text-background-padding':3,
           'text-margin-y':-9}},
+        {selector:'.new-edge',style:{width:2.8,'line-color':'#527f9d','target-arrow-color':'#527f9d','line-style':'dashed',opacity:1}},
         {selector:'.evidence-edge',style:{width:3,'line-color':'#c57655','target-arrow-color':'#c57655',color:'#95543c',opacity:1,'font-size':11,'z-index':5}},
         {selector:'.target-edge',style:{width:4,'line-color':'#234d43','target-arrow-color':'#234d43',color:'#234d43',opacity:1,'font-weight':'bold','z-index':7}},
         {selector:':selected',style:{'border-color':'#427c78','border-width':4,'overlay-color':'#427c78','overlay-opacity':.09,'overlay-padding':6}},
@@ -31,7 +32,7 @@ export class RelationshipGraph {
     this.observer=new ResizeObserver(()=>{this.cy.resize();const narrow=this.cy.width()<560;if(this.narrow!==narrow){this.narrow=narrow;this.layout();}else this.fit();});this.observer.observe(container);
   }
   clear(){this.payload=null;this.cy.elements().remove();}
-  setData(payload,mode,finding=null){this.payload=payload;this.labels=payload.highlightTxIds.length<=4;this.cy.elements().remove();this.cy.add(graphElements(payload));this.setMode(mode,finding);}
+  setData(payload,mode,finding=null){this.payload=payload;this.labels=payload.highlightTxIds.length<=4;this.cy.elements().remove();this.cy.add(graphElements(payload));const added=new Set(payload.accountExpansion?.lastPage?.addedTxIds||[]);this.cy.edges().forEach(edge=>edge.toggleClass('new-edge',added.has(edge.data('txId'))));this.setMode(mode,finding);}
   setMode(mode,finding=null){
     if(!this.payload)return;
     this.mode=mode;this.finding=finding;this.flow=buildFlow(this.payload,finding);
@@ -47,7 +48,7 @@ export class RelationshipGraph {
         node.toggleClass('center-account',key===this.flow.center);
       });
       this.cy.edges().forEach(edge=>{const order=this.flow.sequence.get(edge.data('txId'));edge.data('sequence',order||'');});
-      if(finding){const focus=new Set(finding.evidenceTxIds);this.cy.edges().forEach(edge=>edge.toggleClass('dimmed',!focus.has(edge.data('txId'))&&edge.data('txId')!==this.payload.graph.targetTxId));}
+      if(finding&&mode==='evidence'){const focus=new Set(finding.evidenceTxIds);this.cy.edges().forEach(edge=>edge.toggleClass('dimmed',!focus.has(edge.data('txId'))&&edge.data('txId')!==this.payload.graph.targetTxId));}
     });
     this.updateLabels();this.onVisible({accounts:accounts.size,transactions:ids.size});this.layout();
   }

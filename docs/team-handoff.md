@@ -8,7 +8,7 @@ V4의 지원 근거 40/40·미지원 보류 20/20은 개선에 사용한 질문�
 
 ## 데이터 없이 코드부터 확인
 
-Python 3.10 이상과 JavaScript 검사에 Node.js가 필요하다. 개발 PC의 Python 3.14·Node.js 24에서 검증했다. Python 자동 테스트는 표준 라이브러리를 사용하며, JavaScript 검사는 저장소에 포함된 Cytoscape 배포본을 쓴다. Kaggle 데이터·실제 Neo4j·Docker·API 키·npm 설치 없이 실행한다. 저장소 루트에서 각각 별도 Python 프로세스로 실행한다.
+개발 PC의 Python 3.14와 Node.js 24에서 검증했다. JavaScript 검사에는 Node.js가 필요하다. Python 자동 테스트는 표준 라이브러리를 사용하며, JavaScript 검사는 저장소에 포함된 Cytoscape 배포본을 쓴다. Kaggle 데이터·실제 Neo4j·Docker·API 키·npm 설치 없이 실행한다. 저장소 루트에서 각각 별도 Python 프로세스로 실행한다.
 
 ```powershell
 git clone --single-branch --branch codex/rag-safe-share https://github.com/JiHaneggg/TraceOn.git
@@ -18,10 +18,11 @@ python -m unittest discover -s data-pipeline/tests -q
 python -m unittest discover -s rule-service/tests -q
 python -m unittest discover -s rag-service/tests -q
 python -m unittest discover -s graph-viewer/tests -q
-node --test graph-viewer/tests/graph.test.mjs graph-viewer/tests/flow.test.mjs graph-viewer/tests/review.test.mjs
+python -m unittest discover -s ml-service/tests -q
+node --test graph-viewer/tests/*.test.mjs
 ```
 
-검사 구성은 데이터 16·룰 24·RAG 211·그래프 Python26·JavaScript29, 총 306개다. HTTP 계약 테스트는 테스트용 로컬 포트를 사용한다. 테스트 통과는 실제 금융 업무의 정확도나 최종 UI 완성을 의미하지 않는다.
+공통 기준 커밋에서는 데이터 34·룰 24·RAG 211·그래프 Python 65·JavaScript 40·ML 3개, 총 377개를 확인했다. HTTP 계약 테스트는 테스트용 로컬 포트를 사용한다. 테스트 통과는 실제 금융 업무의 정확도나 최종 UI 완성을 의미하지 않는다.
 
 Python 소스는 `.gitattributes`로 LF에 고정하고, 이미 평가에 사용한 `evaluation_queries*.json`은 원본 바이트를 보존한다. 운영체제별 자동 줄바꿈 변환으로 기록된 코드·질문 해시가 달라지는 것을 방지하기 위함이다. 기존 셸·Windows 스크립트·이미지 속성 규칙은 유지한다.
 
@@ -85,3 +86,20 @@ python rag-service/rag_server.py --port 8092
 - 그래프/RAG 연결의 관련 자동 검사 55개, 실제 DB 시연 12건의 사실44·인용158 조회와 첨부파일24개 일치를 확인했다. 자동 검사 통과와 근거 충분/사람 승인은 구분한다.
 - 실제 LLM·의미적 Judge·재시도는 미측정이며, 현재 초안은 검산된 사실과 허용 문구를 이용한 템플릿이다.
 - 실제 DB/문서 자료는 Git에 없으므로 코드만 받은 PC에서는 아래 테스트부터 실행하고, 실제 시연은 자료 준비 후 진행한다. `scripts/start-graph-viewer.ps1`과 [연결 가이드](graph-rag-integration.md)를 따른다.
+
+## 2026-11-17 DB 조회 점검
+
+[읽기 전용 진단](db-query-audit.md)에 신규 검사 15개를 추가했다. 이번 단계에서는 데이터 영역 31개(기존16+신규15)를 실행했고 통과했다. 이전 공유 시 전체306개 통과 기록은 유지하며 이번에 전체321개를 재실행한 것으로 표시하지 않는다. 실제 시연12대상×3조건의 원본 정합성과 상한 생략을 측정했다. 결과의 비율은 적재된 일부 자료에 대한 조회 포함 비율이며 AML Recall이 아니다.
+
+
+## 분석 이력 추가 — 2026-11-18
+
+[사용법과 API](analysis-history.md)를 추가했다. 화면 상단에서 그래프/룰만 또는 준비한 초안/원문까지 저장하고 목록에서 다시 연다. SQLite는 `data/history/analysis.sqlite3`에 자동 생성된다. 이 폴더는 Git 제외이며 원본 HTML 전체의 복제나 운영 감사 DB가 아니다. 최신 자료로 조사하려면 저장본의 ‘현재 자료로 새 분석’을 선택한다. 팀 백엔드 이관 시 이력 ID·불변 내용·원본/코퍼스 버전·현재 자료 미조회 표시를 함께 유지한다.
+
+
+## 2026-11-23 팀 연동 자료
+
+[공동 시연 확인표](team-integration-check.md)에 순환 송금 한 건의 69→72거래 추가 조회, 근거 확인, 저장본 다시 열기와 담당별 완료 기준을 모았다. [500건 DB 조회 대조](neo4j-evaluation-replay.md)와 [RAG 검수 회신 양식](mentor-review-questions.md)을 함께 참고한다.
+
+
+공통 기준은 [팀 연동 확인표](team-integration-check.md)의 `verify-team-integration.py`로 확인한다. 백엔드는 구현한 단계까지 검사할 수 있고, 프론트·에이전트·문서 담당은 같은 시연 거래와 결과를 사용한다.

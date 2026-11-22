@@ -10,8 +10,8 @@ async function request(path,body,signal){
 }
 
 export class ReviewPanel{
-  constructor(onTransaction,onReload){
-    this.onTransaction=onTransaction;this.epoch=new RequestEpoch();this.dialogEpoch=new RequestEpoch();this.key=null;this.result=null;
+  constructor(onTransaction,onReload,onChange=()=>{}){
+    this.onTransaction=onTransaction;this.onChange=onChange;this.epoch=new RequestEpoch();this.dialogEpoch=new RequestEpoch();this.key=null;this.result=null;
     $('review-refresh-source').addEventListener('click',async()=>{if(this.pending)return;await onReload();$('review-card').scrollIntoView({behavior:'smooth',block:'start'});});
     $('review-prepare').addEventListener('click',()=>this.prepare());
     $('review-verify').addEventListener('click',()=>this.verify());
@@ -27,19 +27,24 @@ export class ReviewPanel{
   setContext(payload,finding){
     const index=finding?payload?.ruleResult.findings.indexOf(finding):null,key=payload?`${payload.reviewSnapshotId}:${index}`:null;
     if(key===this.key&&payload)return;
-    this.key=key;this.payload=payload;this.findingIndex=index;this.result=null;this.pending=false;this.epoch.reset();this.controller?.abort();this.dialogEpoch.reset();this.dialogController?.abort();
+    this.key=key;this.payload=payload;this.findingIndex=index;this.result=null;this.archive=null;this.archiveInvalid=false;this.pending=false;this.epoch.reset();this.controller?.abort();this.dialogEpoch.reset();this.dialogController?.abort();
     if($('review-evidence-dialog').open)$('review-evidence-dialog').close();
     $('review-content').hidden=true;$('review-error').hidden=true;$('review-refresh-source').hidden=true;$('review-empty').hidden=false;$('review-state').textContent='근거 확인 대기';$('review-state').className='review-state';
     $('review-focus').textContent=payload?`${payload.graph.targetTxId} · ${finding?ruleName(finding.ruleId):'대상 거래 · 현재 룰 탐지 없음'}`:'거래를 선택해 주세요.';
     $('review-empty').textContent=payload?'선택한 경로의 관련 근거와 현재 조회 결과 전체의 검토 초안을 준비합니다.':'거래를 조회한 뒤 관련 근거를 확인할 수 있습니다.';
     $('review-prepare').disabled=!payload?.reviewSnapshotId;$('review-prepare').textContent='근거·초안 준비';
-    $('review-all-facts').checked=false;this.downloadState(false);
+    $('review-all-facts').checked=false;this.downloadState(false);this.onChange();
   }
-  downloadState(enabled){for(const id of ['review-download-md','review-download-json'])$(id).disabled=!enabled;$('review-verify').disabled=!this.result||this.pending;}
+  setArchived(payload,result,history){
+    this.setContext(null,null);this.archive=history;this.payload=payload;this.key='archive:'+history.historyId;this.result=result;this.findingIndex=result?.focus.findingIndex??null;
+    if(result){this.elapsed=0;this.render();this.tab('draft');}else{$('review-focus').textContent='저장 당시 결과 · 그래프·룰만 저장됨';$('review-empty').textContent='이 저장본에는 RAG 초안이 없습니다. 현재 자료로 새 분석을 시작하면 준비할 수 있습니다.';}
+    $('review-prepare').disabled=true;$('review-prepare').textContent='저장본 읽기 전용';this.onChange();
+  }
+  downloadState(enabled){for(const id of ['review-download-md','review-download-json'])$(id).disabled=!enabled||this.archiveInvalid;$('review-verify').disabled=!this.result||this.pending;$('review-verify').textContent=this.archive?'저장본 내용 검사':'초안 재검사';}
   async prepare(){
     if(!this.payload?.reviewSnapshotId||this.pending)return;
     const epoch=this.epoch.value;this.pending=true;this.controller?.abort();this.controller=new AbortController();
-    $('review-prepare').disabled=true;$('review-prepare').textContent='근거·초안 확인 중…';$('review-state').textContent='거래 사실·인용 대조 중';$('review-error').hidden=true;this.downloadState(false);
+    $('review-prepare').disabled=true;$('review-prepare').textContent='근거·초안 확인 중…';$('review-state').textContent='거래 사실·인용 대조 중';$('review-error').hidden=true;this.downloadState(false);this.onChange();
     const started=performance.now();
     try{
       const result=await request('/api/review/prepare',{snapshotId:this.payload.reviewSnapshotId,findingIndex:this.findingIndex},this.controller.signal);
@@ -47,7 +52,7 @@ export class ReviewPanel{
       if(result.snapshotId!==this.payload.reviewSnapshotId||result.focus.findingIndex!==this.findingIndex)throw new Error('선택한 경로와 초안이 일치하지 않습니다.');
       this.result=result;this.elapsed=performance.now()-started;this.render();this.tab('draft');
     }catch(error){if(!this.epoch.current(epoch)||error.name==='AbortError')return;this.error(error.message,error.code);$('review-state').textContent='근거 확인 필요';}
-    finally{if(this.epoch.current(epoch)){this.pending=false;$('review-prepare').disabled=false;$('review-prepare').textContent=this.result?'근거·초안 다시 준비':'다시 시도';this.downloadState(!!this.result&&verificationState(this.result).downloadAllowed);}}
+    finally{if(this.epoch.current(epoch)){this.pending=false;$('review-prepare').disabled=false;$('review-prepare').textContent=this.result?'근거·초안 다시 준비':'다시 시도';this.downloadState(!!this.result&&verificationState(this.result).downloadAllowed);this.onChange();}}
   }
   error(message,code){$('review-error').textContent=message;$('review-error').hidden=false;$('review-refresh-source').hidden=code!=='review_expired';}
   render(){
@@ -55,6 +60,7 @@ export class ReviewPanel{
     $('review-state').textContent=status.label;$('review-state').className='review-state '+(status.valid?'checked':'unchecked');
     $('review-boundary').textContent=status.abstained?'원질문 답변 보류 · 보조 자료는 참고용입니다.':result.report.reviewReadiness?.label||'사람 검토 대기 · 제출용 최종 STR이 아닙니다.';
     $('review-generation').textContent=`검증된 사실 기반 템플릿 · LLM 호출 없음 · 준비 ${(this.elapsed/1000).toFixed(2)}초`;
+    if(this.archive){$('review-state').textContent='저장 당시 자동 검사 통과 · 현재 자료 미조회';$('review-generation').textContent='저장 시각 '+new Date(this.archive.savedAt).toLocaleString('ko-KR')+' · 당시 초안·원문을 표시합니다.';$('review-focus').textContent='저장 당시 선택 경로 · '+this.result.context.targetTxId;}
     $('review-identities').textContent=`보고서 ${result.report.reportId}\n문서 버전 ${result.context.corpusSha256}\n거래 그래프 ${result.context.graphSha256}`;
     this.renderDraft();this.renderSources();this.renderFacts();this.renderChecks();this.downloadState(status.downloadAllowed);
   }
@@ -104,26 +110,36 @@ export class ReviewPanel{
   }
   async verify(){
     if(!this.result||this.pending)return null;
-    const epoch=this.epoch.value,reviewId=this.result.reviewId;this.pending=true;this.downloadState(false);$('review-prepare').disabled=true;$('review-verify').textContent='재검사 중…';
+    if(this.archive)return this.verifyArchive();
+    const epoch=this.epoch.value,reviewId=this.result.reviewId;this.pending=true;this.downloadState(false);$('review-prepare').disabled=true;$('review-verify').textContent='재검사 중…';this.onChange();
     try{
       const result=await request('/api/review/verify',{reviewId},this.controller?.signal);
       if(!this.epoch.current(epoch))return null;
       if(result.reviewId!==reviewId)throw new Error('초안과 재검사 결과가 일치하지 않습니다.');
       this.result={...this.result,report:result.report,verification:result.verification};this.render();return this.result;
     }catch(error){if(!this.epoch.current(epoch)||error.name==='AbortError')return null;this.error(error.message,error.code);if(this.result)this.result={...this.result,verification:{...this.result.verification,valid:false}};$('review-state').textContent='재검사 확인 필요';$('review-state').className='review-state unchecked';return null;}
-    finally{if(this.epoch.current(epoch)){this.pending=false;$('review-prepare').disabled=false;$('review-verify').textContent='초안 재검사';this.downloadState(!!this.result&&verificationState(this.result).downloadAllowed);}}
+    finally{if(this.epoch.current(epoch)){this.pending=false;$('review-prepare').disabled=false;$('review-verify').textContent='초안 재검사';this.downloadState(!!this.result&&verificationState(this.result).downloadAllowed);this.onChange();}}
+  }
+  async verifyArchive(){
+    const epoch=this.epoch.value,h=this.archive;this.pending=true;this.downloadState(false);
+    try{const checked=await request('/api/history/verify?'+new URLSearchParams({historyId:h.historyId}));if(!this.epoch.current(epoch))return null;
+      if(checked.history.historyId!==h.historyId||checked.history.snapshotSha256!==h.snapshotSha256||checked.history.integrity.valid!==true||checked.history.integrity.currentSourcesChecked!==false)throw new Error('열어둔 저장본과 검사 결과가 다릅니다.');
+      this.archiveInvalid=false;this.render();$('review-error').hidden=true;return this.result;
+    }catch(error){if(!this.epoch.current(epoch))return null;this.archiveInvalid=true;this.error(error.message);$('review-state').textContent='저장본 내용 확인 필요';return null;}
+    finally{if(this.epoch.current(epoch)){this.pending=false;this.downloadState(!this.archiveInvalid&&verificationState(this.result).downloadAllowed);}}
   }
   async download(format){
     const result=await this.verify();if(!result||!verificationState(result).downloadAllowed)return;
-    const link=el('a');link.href='/api/review/download?'+new URLSearchParams({reviewId:result.reviewId,format});link.download=`traceon-${result.context.targetTxId}-review.${format==='markdown'?'md':'json'}`;link.hidden=true;document.body.append(link);link.click();link.remove();
+    const link=el('a');link.href=this.archive?'/api/history/download?'+new URLSearchParams({historyId:this.archive.historyId,format}):'/api/review/download?'+new URLSearchParams({reviewId:result.reviewId,format});link.download=`traceon-${result.context.targetTxId}-${this.archive?'archive':'review'}.${format==='markdown'?'md':'json'}`;link.hidden=true;document.body.append(link);link.click();link.remove();
   }
   async evidence(kind,id){
     if(!this.result)return;const epoch=this.epoch.value,dialogToken=this.dialogEpoch.reset(),reviewId=this.result.reviewId;
     this.dialogController?.abort();this.dialogController=new AbortController();const body=$('review-evidence-body');body.replaceChildren(el('p','review-empty','원본 근거를 확인하고 있습니다…'));$('review-evidence-title').textContent=kind==='citation'?'인용 원문 확인':'거래 사실의 근거';
     if(!$('review-evidence-dialog').open)$('review-evidence-dialog').showModal();
     try{
-      const result=kind==='citation'?await request('/api/review/citation?'+new URLSearchParams({reviewId,chunkId:id}),undefined,this.dialogController.signal):await request('/api/review/fact',{reviewId,factId:id},this.dialogController.signal);
+      const result=this.archive?await request('/api/history/'+kind+'?'+new URLSearchParams({historyId:this.archive.historyId,[kind==='citation'?'chunkId':'factId']:id}),undefined,this.dialogController.signal):kind==='citation'?await request('/api/review/citation?'+new URLSearchParams({reviewId,chunkId:id}),undefined,this.dialogController.signal):await request('/api/review/fact',{reviewId,factId:id},this.dialogController.signal);
       if(!this.epoch.current(epoch)||!this.dialogEpoch.current(dialogToken))return;body.replaceChildren();
+      if(this.archive&&(result.history.historyId!==this.archive.historyId||result.history.snapshotSha256!==this.archive.snapshotSha256))throw new Error('저장 당시 근거와 조회 결과가 일치하지 않습니다.');
       if(kind==='citation')this.renderCitation(result,body);else this.renderFact(result,body);
     }catch(error){if(!this.epoch.current(epoch)||!this.dialogEpoch.current(dialogToken)||error.name==='AbortError')return;body.replaceChildren(el('p','review-warning',error.message));}
   }
@@ -139,7 +155,7 @@ export class ReviewPanel{
     const identity=el('details','review-raw');identity.append(el('summary','','인용 ID·문서 버전'),el('pre','',`${row.chunkId}\n문서 코퍼스 ${result.corpusSha256}\n원본 해시 ${row.sourceSha256}`));box.append(identity);
   }
   renderFact(result,box){
-    box.append(el('h4','',factLabel(result.fact.factId)),el('p','review-resolved-value',factValue(this.result.context,result.fact)),el('p','review-source-notice',`동일한 조회 그래프에서 다시 계산했습니다. 거래 근거 ${result.transactions.length}건이며 은행 전체 원장의 진위를 인증한 것은 아닙니다.`));
+    box.append(el('h4','',factLabel(result.fact.factId)),el('p','review-resolved-value',factValue(this.result.context,result.fact)),el('p','review-source-notice',`${this.archive?'저장 당시 검증한 사실과 거래를 표시합니다. 현재 자료는 재조회하지 않았습니다.':'동일한 조회 그래프에서 다시 계산했습니다.'} 거래 근거 ${result.transactions.length}건이며 은행 전체 원장의 진위를 인증한 것은 아닙니다.`));
     for(const edge of result.transactions){const item=el('article','review-source');item.append(el('strong','',edge.txId),el('p','',timeText(edge.timestamp)),el('p','review-route',`${edge.fromAccountKey} → ${edge.toAccountKey}`),el('p','review-resolved-amount',amountText(edge.amountPaid,edge.paymentCurrency)),button('그래프에서 이 거래 보기',()=>{$('review-evidence-dialog').close();this.onTransaction(edge.txId);}));box.append(item);}
     if(!result.transactions.length)box.append(el('p','review-source-notice','이 사실에는 별도의 탐지 근거 거래가 없습니다. 탐지 없음이 정상 거래의 확정 판정은 아닙니다.'));
   }

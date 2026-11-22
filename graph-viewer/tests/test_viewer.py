@@ -22,6 +22,7 @@ class FakeDatabase:
         self.memory=MemoryGraph(graph['edges']);self.target=graph['targetTxId']
     def query(self,statement,parameters=None):
         if statement==viewer.HEALTH_QUERY:return [{'connected':1}]
+        if statement==viewer.VERSION_QUERY:return [{'name':'synthetic-fixture','sha256':'a'*64}]
         if statement==viewer.LIST_QUERY:return [{'edge':self.memory.transactions[tx]} for tx in parameters['ids']]
         raise ValueError('Unexpected read')
     def subgraph(self,tx_id,**kwargs):
