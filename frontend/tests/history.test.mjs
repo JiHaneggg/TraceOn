@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {assertArchive,archiveNotice,historySaveState} from '../static/history-format.mjs';
+import {expandableAccounts} from '../static/expansion-format.mjs';
+function fixture(){const history={historyId:'H-example',savedAt:'2026-11-18T00:00:00Z',integrity:{valid:true,currentSourcesChecked:false},readyForSubmission:false,targetTxId:'TX-000000001',transactions:1,accounts:2,hasReview:false};return {history,payload:{history,graph:{targetTxId:history.targetTxId,edges:[{}],nodes:[{},{}]}},review:null};}
+test('archived payload is explicitly historical and carries no live snapshot',()=>{const result=fixture();assert.equal(assertArchive(result),result);assert.match(archiveNotice(result.history),/현재 DB·규정은 재조회하지 않았습니다/);});
+test('mismatched target, source freshness, report and counts are refused',()=>{for(const mutate of [r=>r.payload.graph.targetTxId='other',r=>r.history.integrity.currentSourcesChecked=true,r=>r.history.integrity.valid=false,r=>r.history.hasReview=true,r=>r.payload.graph.edges=[],r=>r.payload.reviewSnapshotId='live',r=>r.history.readyForSubmission=true]){const r=fixture();mutate(r);assert.throws(()=>assertArchive(r));}});
+test('save is disabled for pending, missing or historical graph',()=>{assert.equal(historySaveState({payload:{reviewSnapshotId:'live'},busy:false}).enabled,true);assert.equal(historySaveState({payload:{reviewSnapshotId:'live'},reviewId:'review'}).label,'그래프·초안 함께 저장');for(const current of [null,{payload:{}},{payload:{reviewSnapshotId:'live'},busy:true},{payload:{reviewSnapshotId:'live',history:{}}}])assert.equal(historySaveState(current).enabled,false);});
+test('stored candidates can never trigger additional live account reads',()=>{const payload={history:{historyId:'archived'},accountExpansion:{enabled:true,budgetReached:false,candidates:[{accountKey:'1:a',canExpand:true}]}};assert.deepEqual(expandableAccounts(payload),[]);});

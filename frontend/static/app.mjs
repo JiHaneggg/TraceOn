@@ -1,0 +1,350 @@
+import {RelationshipGraph} from './graph.mjs';
+import {accountParts,accountShort,accountActivity,amountText,decimalText,timeText,durationText,ruleName,visibleTransactionIds} from './format.mjs';
+import {buildFlow,primaryFinding,sourceSeconds} from './flow.mjs';
+import {ReviewPanel} from './review.mjs';
+import {assertExpandedPayload,expandableAccounts} from './expansion-format.mjs';
+import {HistoryPanel} from './history.mjs';
+import {assertArchive,archiveNotice} from './history-format.mjs';
+import {assertGraphPayload} from './contract.mjs';
+import {runtime,isFixture} from './runtime.mjs';
+
+const $=id=>document.getElementById(id);
+function element(tag,className,text){const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=String(text);return node;}
+const state={cases:[],payload:null,selectedId:null,selectedKind:'transaction',selectedKey:null,mode:'evidence',finding:null,flow:null,page:0,request:0,controller:null,expanding:false,expansionInvalid:false,expansionError:''};
+let graph,review,historyPanel;
+
+function connection(ok){$('connection').className='connection '+(ok?'connected':'failed');$('connection').querySelector('span').textContent=ok?(isFixture()?'예시 데이터 · 백엔드 미연결':'API 응답 연결됨'):'조회 확인 필요';}
+function overlay(title,message,error=false){$('graph-overlay').hidden=false;$('graph-overlay').classList.toggle('error',error);$('overlay-title').textContent=title;$('overlay-message').textContent=message;}
+async function api(path,signal,body){const response=await fetch(path,{signal,cache:'no-store',...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});const data=await response.json();if(!response.ok){const error=new Error(data.message||'조회를 완료하지 못했습니다.');error.code=data.error;throw error;}return data;}
+
+function renderCases(){
+  const query=$('case-search').value.trim().toLowerCase();
+  const items=state.cases.filter(row=>[row.txId,row.fromAccountKey,row.toAccountKey].some(value=>value.toLowerCase().includes(query)));
+  const list=$('case-list');list.replaceChildren();$('case-count').textContent=state.cases.length;
+  if(!items.length){list.append(element('div','empty-note','일치하는 시연 거래가 없습니다.'));return;}
+  for(const row of items){
+    const button=element('button','case-item'+(row.txId===state.selectedId?' selected':''));button.dataset.txId=row.txId;button.setAttribute('aria-pressed',String(row.txId===state.selectedId));
+    const top=element('span','case-top');top.append(element('span','case-number',`CASE ${String(state.cases.indexOf(row)+1).padStart(2,'0')}`),element('span','case-state',row.txId===state.selectedId?'분석 대상':'↗'));
+    button.append(top,element('strong','case-id',row.txId),element('span','case-date',timeText(row.timestamp)),
+      element('span','case-money',amountText(row.amountPaid,row.paymentCurrency)),element('span','case-route',`${accountShort(row.fromAccountKey)} → ${accountShort(row.toAccountKey)}`));
+    button.addEventListener('click',()=>loadTransaction(row.txId));list.append(button);
+  }
+}
+
+function updateModes(){document.querySelectorAll('[data-mode]').forEach(button=>{const active=button.dataset.mode===state.mode;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});}
+function setMode(mode,finding=state.finding){state.mode=mode;state.finding=finding;state.flow=buildFlow(state.payload,finding);updateModes();graph.setMode(mode,finding);renderFlow();updateNotice();graph.select(state.selectedKind,state.selectedKey);if(!state.payload.history)review.setContext(state.expanding||state.expansionInvalid?null:state.payload,finding);}
+function updateNotice(){
+  if(!state.payload)return;
+  const p=state.payload;let message;
+  if(state.finding&&state.mode==='evidence')message=`${ruleName(state.finding.ruleId)}의 실제 근거 거래 ${state.finding.evidenceTxIds.length}건을 표시합니다. 선의 번호와 시간순 근거의 번호가 연결됩니다.`;
+  else if(state.mode==='evidence')message=p.highlightTxIds.length?'탐지 근거와 대상 거래를 중심으로 표시합니다. 주변 거래는 ‘주변 연결’에서 확인하세요.':'현재 룰 조건에 해당하는 경로가 없어 대상 거래만 표시합니다. ‘주변 연결’에서 주변 거래를 확인하세요.';
+  else message=`대상 거래 시각 이전 ${p.graph.meta.windowDays||$('days').value}일 · ${p.graph.meta.hops}홉 범위의 연결을 표시합니다.`;
+  if(p.graph.meta.truncated)message+=' 조회 상한에 도달해 일부 경로가 생략됐습니다.';
+  if(!graph.labels)message+=' 금액은 거래를 선택하거나 ‘전체 금액’으로 확인하세요.';
+  if(p.history)message='저장 당시 그래프입니다. '+message;
+  $('graph-notice').textContent=message;
+}
+
+function resetDetails(){
+  state.payload=null;state.finding=null;state.flow=null;state.page=0;state.expanding=false;state.expansionInvalid=false;state.expansionError='';graph.clear();review.setContext(null,null);renderExpansion();
+  $('history-view').hidden=true;for(const id of ['hops','days'])$(id).disabled=isFixture();historyPanel?.sync();
+  $('workspace-source-label').textContent=isFixture()?'예시 데이터 · 백엔드 미연결':'읽기 전용 · API 조회';
+  $('identity-check').hidden=true;
+  for(const id of ['rule-score','account-count','transaction-count','pattern-count','table-count','findings-count'])$(id).textContent='—';
+  $('score-fill').style.width='0%';$('score-state').textContent='조회 중';$('hop-caption').textContent='선택한 범위의 응답을 확인합니다';
+  $('evidence-caption').textContent='룰 근거 확인 중';$('graph-scope').textContent='조회 중';$('visible-count').textContent='—';$('table-range').textContent='—';
+  $('inspector').replaceChildren(element('div','empty-note','원본 거래 정보를 확인하고 있습니다…'));
+  $('transactions-body').replaceChildren();$('findings-list').replaceChildren();$('export').disabled=true;
+  $('pattern-picker').replaceChildren();$('flow-summary').replaceChildren();$('timeline-list').replaceChildren();$('timeline-count').textContent='—';$('timeline-note').textContent='근거 거래를 조회하고 있습니다.';$('timeline-progress').textContent='—';
+  $('flow-previous').disabled=true;$('flow-next').disabled=true;
+  $('next-page').disabled=true;$('previous-page').disabled=true;
+}
+
+async function loadTransaction(id){
+  if(!id)return;
+  state.selectedId=id;state.controller?.abort();state.controller=new AbortController();const request=++state.request;
+  const row=state.cases.find(row=>row.txId===id);
+  resetDetails();renderCases();$('mobile-cases').value=id;$('target-id').textContent=id;
+  $('target-flow').textContent=row?`${accountShort(row.fromAccountKey)} → ${accountShort(row.toAccountKey)}`:'거래 응답 확인 중';
+  $('target-amount').textContent=row?amountText(row.amountPaid,row.paymentCurrency):'—';
+  overlay('거래 관계를 확인하고 있습니다',isFixture()?'고정된 합성 시연 자료에서 계좌·송금 경로와 룰 근거를 불러옵니다.':'API에서 계좌·송금 경로와 룰 근거를 조회합니다.');
+  try{
+    const params=new URLSearchParams({txId:id,hops:$('hops').value,windowDays:$('days').value});
+    const payload=assertGraphPayload(await api('/api/graph?'+params,state.controller.signal));
+    if(request!==state.request)return;
+    if(payload.graph.targetTxId!==id)throw new Error('선택한 거래와 응답이 일치하지 않습니다.');
+    state.payload=payload;state.finding=primaryFinding(payload);state.flow=buildFlow(payload,state.finding);state.mode='evidence';connection(true);renderMetrics();updateModes();graph.setData(payload,state.mode,state.finding);$('labels').setAttribute('aria-pressed',String(graph.labels));renderFlow();updateNotice();
+    selectItem('transaction',id,false);renderFindings();renderTable();renderExpansion();review.setContext(payload,state.finding);$('graph-overlay').hidden=true;$('export').disabled=false;
+    const time=new Date(payload.source.queriedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+    $('query-time').textContent=isFixture()?'고정된 합성 시연 응답 · 전체 원장이 아닙니다.':`${time} API 조회 · 시연용 부분 데이터이며 전체 원장이 아닙니다.`;
+  }catch(error){
+    if(error.name==='AbortError'||request!==state.request)return;
+    connection(false);overlay('거래를 불러오지 못했습니다',error.message,true);$('score-state').textContent='조회 실패';
+    $('inspector').replaceChildren(element('div','empty-note','상단의 새로 조회 버튼으로 다시 시도할 수 있습니다.'));
+  }
+}
+
+function renderExpansion(preferred=$('expand-account').value){
+  if(state.payload?.history){$('expand-account').replaceChildren(element('option','','저장본은 추가 조회하지 않습니다.'));$('expand-account').disabled=true;$('expand-load').disabled=true;$('expand-load').textContent='저장본 읽기 전용';$('expand-summary').textContent=`저장 당시 추가 조회 ${state.payload.accountExpansion?.pagesUsed||0}회`;$('expand-status').textContent='추가 조회하려면 현재 자료로 새 분석을 시작하세요.';return;}
+  const status=state.payload?.accountExpansion,select=$('expand-account');select.replaceChildren();
+  const candidates=expandableAccounts(state.payload);
+  if(!candidates.length){const option=element('option','','추가 조회할 계좌 없음');option.value='';select.append(option);}
+  for(const row of candidates){const option=element('option','',`${row.accountKey} · ${row.reason==='more_history'?'생략된 거래':'새 연결 계좌'}`);option.value=row.accountKey;select.append(option);}
+  if(candidates.some(row=>row.accountKey===preferred))select.value=preferred;
+  select.disabled=state.expanding||state.expansionInvalid||!candidates.length;
+  $('expand-load').disabled=select.disabled;$('expand-load').textContent=state.expanding?'추가 조회 중…':'최대 25건 더 조회';
+  $('expand-summary').textContent=status?`추가 조회 ${status.pagesUsed} / ${status.maxPages}회 · 새 거래 ${status.totalAddedTransactions}건 · 같은 기간·홉 범위 유지`:'거래를 선택하면 추가 조회 가능 계좌를 확인합니다.';
+  const last=status?.lastPage;
+  $('expand-status').classList.toggle('expansion-error',Boolean(state.expansionError));
+  $('expand-status').textContent=state.expansionError||(state.expanding?'선택 계좌의 다음 거래를 확인하고 있습니다.':!status?.enabled?'자료 버전·조회 이력을 확인한 결과에서만 추가 조회할 수 있습니다.':status.budgetReached?'안전한 조회 상한에 도달했습니다. 남은 거래는 이 화면에서 모두 조회됐다고 볼 수 없습니다.':!candidates.length&&status.candidates.length?'계좌별 추가 조회 상한에 도달했습니다. 생략된 거래가 남아 있을 수 있습니다.':last?`${last.readRows}건 확인 → 새 거래 ${last.addedTransactions}건, 중복 ${last.duplicateTransactions}건. 이전 초안을 지웠습니다. 새 그래프로 근거·초안을 다시 준비하세요.${candidates.length?'':' 현재 범위에서 추가 조회할 계좌가 없습니다.'}`:candidates.length?'생략된 계좌를 선택하거나 계좌 상세에서 추가 조회하세요. 계좌당 최대 4회, 전체 1,000거래까지 조회합니다.':'현재 적재 자료와 선택 범위에서 추가 조회할 계좌가 없습니다. 전체 원장을 확인했다는 뜻은 아닙니다.');
+}
+
+async function expandAccount(key=$('expand-account').value){
+  if(state.expanding||state.expansionInvalid||!expandableAccounts(state.payload).some(row=>row.accountKey===key))return;
+  const before=state.payload,ruleId=state.finding?.ruleId;state.controller?.abort();state.controller=new AbortController();const request=++state.request;
+  state.expanding=true;state.expansionError='';$('export').disabled=true;review.setContext(null,null);renderExpansion(key);
+  historyPanel.sync();
+  if(state.selectedKind==='account')renderAccountInspector(state.selectedKey);
+  overlay('선택 계좌의 거래를 더 확인합니다',isFixture()?'같은 기간·홉의 추가 거래와 갱신된 룰 응답을 불러옵니다.':'같은 기간·홉 범위에서 최대 25건을 조회하고 룰 근거를 다시 계산합니다.');
+  try{
+    const payload=assertGraphPayload(await api('/api/graph/expand',state.controller.signal,{snapshotId:before.reviewSnapshotId,accountKey:key}));
+    if(request!==state.request)return;
+    assertExpandedPayload(before,payload);
+    state.payload=payload;state.finding=payload.ruleResult.findings.find(row=>row.ruleId===ruleId)||primaryFinding(payload);state.flow=buildFlow(payload,state.finding);state.mode='all';state.page=0;
+    renderMetrics();updateModes();graph.setData(payload,state.mode,state.finding);$('labels').setAttribute('aria-pressed',String(graph.labels));renderFlow();renderFindings();renderTable();updateNotice();selectItem('account',key,false);
+    review.setContext(payload,state.finding);$('graph-overlay').hidden=true;connection(true);
+    $('query-time').textContent=`추가 조회 ${payload.accountExpansion.pagesUsed}회 · 이전 초안 무효화 · 시연용 부분 데이터`;
+  }catch(error){
+    if(error.name==='AbortError'||request!==state.request)return;
+    state.expansionError=error.message;
+    state.expansionInvalid=['dataset_changed','source_changed','graph_superseded','expansion_expired','review_expired'].includes(error.code)||!error.code;
+    if(state.expansionInvalid)overlay('거래를 다시 조회해 주세요',error.message,true);
+    else{$('graph-overlay').hidden=true;review.setContext(before,state.finding);}
+  }finally{
+    if(request===state.request){state.expanding=false;$('export').disabled=state.expansionInvalid;renderExpansion(key);if(state.selectedKind==='account')renderAccountInspector(state.selectedKey);historyPanel.sync();}
+  }
+}
+
+async function openHistory(id){
+  state.controller?.abort();state.controller=new AbortController();const request=++state.request;
+  resetDetails();overlay('저장 당시 분석을 불러옵니다','현재 DB나 규정을 새로 조회하지 않습니다.');
+  try{
+    const result=assertArchive(await api('/api/history/open?'+new URLSearchParams({historyId:id}),state.controller.signal));
+    if(request!==state.request)return;
+    const p=assertGraphPayload(result.payload);state.payload=p;state.selectedId=p.graph.targetTxId;
+    const index=result.review?.focus.findingIndex;state.finding=Number.isInteger(index)?p.ruleResult.findings[index]:primaryFinding(p);state.flow=buildFlow(p,state.finding);state.mode='evidence';
+    $('hops').value=p.graph.meta.hops;const days=(sourceSeconds(p.graph.asOf)-sourceSeconds(p.graph.windowStart))/86400;$('days').value=days;
+    for(const name of ['hops','days'])$(name).disabled=true;
+    $('target-id').textContent=state.selectedId;$('target-flow').textContent=`${accountShort(p.target.fromAccountKey)} → ${accountShort(p.target.toAccountKey)}`;$('target-amount').textContent=amountText(p.target.amountPaid,p.target.paymentCurrency);$('mobile-cases').value=state.selectedId;renderCases();
+    renderMetrics();updateModes();graph.setData(p,state.mode,state.finding);$('labels').setAttribute('aria-pressed',String(graph.labels));renderFlow();renderFindings();renderTable();renderExpansion();updateNotice();selectItem('transaction',state.selectedId,false);
+    review.setArchived(p,result.review,result.history);$('graph-overlay').hidden=true;$('export').disabled=false;
+    $('history-view').hidden=false;$('history-view-text').textContent=archiveNotice(result.history);$('query-time').textContent=archiveNotice(result.history);
+    $('connection').className='connection';$('connection').querySelector('span').textContent='저장본 보기 · DB 미조회';historyPanel.sync();
+    $('workspace-source-label').textContent='저장 당시 결과 · 현재 자료 미조회';
+  }catch(error){
+    if(error.name==='AbortError'||request!==state.request)return;
+    resetDetails();overlay('저장본을 열지 못했습니다',error.message,true);throw error;
+  }
+}
+
+function renderMetrics(){
+  const p=state.payload;$('rule-score').textContent=p.ruleResult.ruleScore;$('score-fill').style.width=`${Math.max(0,Math.min(100,p.ruleResult.ruleScore))}%`;
+  $('score-state').textContent=p.ruleResult.findings.length?'검토 필요':'탐지 없음';$('account-count').textContent=p.summary.accounts;
+  $('transaction-count').textContent=p.summary.transactions;$('pattern-count').textContent=p.summary.patterns;
+  $('hop-caption').textContent=`이전 ${$('days').value}일 · 최대 ${p.graph.meta.hops}홉`;
+  $('evidence-caption').textContent=p.highlightTxIds.length?`근거 거래 ${p.highlightTxIds.length}건 · 추가 확인 필요`:'현재 조건의 탐지 없음 · 정상 확정 아님';
+  $('graph-scope').textContent=`${p.graph.meta.hops}홉 · 부분 조회`;$('table-count').textContent=p.summary.transactions;$('findings-count').textContent=p.summary.patterns;
+  $('identity-check').hidden=false;$('identity-tx').textContent=p.graph.targetTxId;
+  $('identity-result').textContent=`원본 연결 확인 · 표·그래프 ${p.graph.edges.length}건 / 룰 근거 ${p.highlightTxIds.length}건 ID 일치`;
+}
+
+function tagsFor(txId){
+  const tags=element('div','tags');if(txId===state.payload.graph.targetTxId)tags.append(element('span','tag target','분석 대상'));
+  if(state.payload.highlightTxIds.includes(txId))tags.append(element('span','tag evidence','탐지 근거'));
+  if(state.payload.accountExpansion?.lastPage?.addedTxIds.includes(txId))tags.append(element('span','tag added','이번 추가'));
+  if(!tags.children.length)tags.append(element('span','tag','주변 거래'));return tags;
+}
+function inspectRow(title,value){const row=element('div','inspect-row');row.append(element('span','',title),element('strong','',value));return row;}
+function accountButton(key){const button=element('button','account-button',key);button.addEventListener('click',()=>selectItem('account',key));return button;}
+function copyButton(value){const button=element('button','copy-button','복사');button.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(value);button.textContent='복사됨';}catch{button.textContent='직접 선택해 복사';}});return button;}
+
+function selectItem(kind,key,reveal=true){
+  const p=state.payload;if(!p)return;
+  if(reveal){
+    const ids=visibleTransactionIds(p,state.mode,state.finding);
+    const visible=kind==='transaction'?ids.has(key):p.graph.edges.some(e=>ids.has(e.txId)&&(e.fromAccountKey===key||e.toAccountKey===key));
+    if(!visible)setMode('all');
+  }
+  state.selectedKind=kind;state.selectedKey=key;graph.select(kind,key);
+  if(kind==='transaction'){
+    if($('only-evidence').checked&&!p.highlightTxIds.includes(key))$('only-evidence').checked=false;
+    const rows=$('only-evidence').checked?p.graph.edges.filter(e=>p.highlightTxIds.includes(e.txId)):p.graph.edges;
+    const index=rows.findIndex(e=>e.txId===key);if(index>=0)state.page=Math.floor(index/25);
+  }
+  if(kind==='transaction')renderTransactionInspector(p.graph.edges.find(edge=>edge.txId===key));else renderAccountInspector(key);
+  renderTable();updateTimelineSelection();
+}
+
+function renderFlow(){
+  const p=state.payload,flow=state.flow,picker=$('pattern-picker');picker.replaceChildren();
+  for(const [i,finding] of p.ruleResult.findings.entries()){
+    const button=element('button','pattern-choice',`${String(i+1).padStart(2,'0')} ${ruleName(finding.ruleId)} · ${finding.score}점`);
+    button.setAttribute('aria-pressed',String(finding===state.finding));button.dataset.finding=String(i);
+    button.addEventListener('click',()=>{setMode('evidence',finding);selectItem('transaction',state.flow.rows[0].txId,false);});picker.append(button);
+  }
+  const box=$('flow-summary');box.replaceChildren();
+  const title=element('h4','',flow.kind==='TARGET'?'대상 거래 · 탐지 근거 없음':ruleName(flow.kind));
+  const shape=flow.kind==='FAN_IN'?`${flow.accounts.length-1}개 송금 계좌 → 1개 집금 계좌`:flow.kind==='FAN_OUT'?`1개 송금 계좌 → ${flow.accounts.length-1}개 수취 계좌`:flow.kind==='CYCLE'?`${flow.accounts.length}개 계좌 · ${flow.rows.length}단계 · 시작 계좌로 복귀`:'현재 룰 조건에 해당하는 패턴이 없습니다.';
+  const heading=element('div','flow-heading');heading.append(title,element('span','flow-shape',shape));box.append(heading);
+  const config=p.ruleResult.config,minimum=flow.kind==='FAN_IN'?(config.fan_in_min_counterparties??config.min_counterparties):(config.fan_out_min_counterparties??config.min_counterparties);
+  const reason=flow.kind==='FAN_IN'?`대상 거래 이전 ${durationText(config.window_minutes*60)} 범위에서 ${minimum}개 이상의 서로 다른 계좌로부터 입금되어 집금 룰에 해당합니다.`:
+    flow.kind==='FAN_OUT'?`대상 거래 이전 ${durationText(config.window_minutes*60)} 범위에서 ${minimum}개 이상의 서로 다른 계좌로 송금되어 분산 송금 룰에 해당합니다.`:
+    flow.kind==='CYCLE'?`거래 시각이 역전되지 않는 ${flow.rows.length}단계 연결이 시작 계좌로 돌아옵니다. 동일 자금의 순환 여부는 추가 확인이 필요합니다.`:
+    '핵심 경로에서는 대상 거래만 표시합니다. 탐지 없음은 정상 거래의 확정 판정이 아닙니다.';
+  box.append(element('p','flow-reason',reason));
+  const stats=element('div','flow-stats');
+  for(const text of [`${flow.rows.length}건 ${flow.finding?'근거':'대상 거래'}`,`${flow.accounts.length}개 계좌`,`경과 ${durationText(flow.elapsedSeconds)}`])stats.append(element('span','',text));
+  box.append(stats,element('p','flow-total',`${flow.totalLabel} ${flow.totalsText}`),element('p','flow-period',`${timeText(flow.start)} → ${timeText(flow.end)} · 원본 시각`));
+  const evidence=element('button','flow-review-button','관련 근거·검토 초안 확인 ↓');evidence.addEventListener('click',()=>{if(state.expanding||state.expansionInvalid)return;if(!state.payload.history)review.prepare();$('review-card').scrollIntoView({behavior:'smooth',block:'start'});});box.append(evidence);
+  $('timeline-count').textContent=flow.rows.length;
+  $('timeline-title').textContent=flow.finding?'시간순 근거':'대상 거래 시각';
+  $('timeline-note').textContent=flow.kind==='TARGET'?'선택한 대상 거래의 원본 시각과 금액입니다. 현재 조회 범위에서 룰 근거가 발견되지 않았습니다.':flow.kind==='CYCLE'?'번호는 룰이 반환한 순환 경로 순서입니다. 같은 시각의 거래는 실제 선후를 확정할 수 없습니다.':'번호는 이 패턴의 거래 시각순입니다. 같은 시각은 ID순으로 나열하며, 서로 이어진 동일 자금이라는 의미는 아닙니다.';
+  if(flow.hasTies)$('timeline-note').textContent+=' 동일 시각 거래가 포함되어 있습니다.';
+  const list=$('timeline-list');list.replaceChildren();
+  for(const row of flow.rows){
+    const li=element('li','timeline-entry'),button=element('button','timeline-item');button.dataset.timelineTx=row.txId;button.setAttribute('aria-label',`${flow.finding?'근거':'대상 거래'} ${row.sequence}, ${row.txId}, ${amountText(row.amountPaid,row.paymentCurrency)}`);
+    const top=element('span','timeline-top');top.append(element('span','timeline-number',String(row.sequence).padStart(2,'0')),element('time','',timeText(row.timestamp)));button.append(top);
+    const route=element('span','timeline-route',`${flow.roles.get(row.fromAccountKey)||accountShort(row.fromAccountKey)} → ${flow.roles.get(row.toAccountKey)||accountShort(row.toAccountKey)}`);
+    button.append(route,element('strong','timeline-money',amountText(row.amountPaid,row.paymentCurrency)),element('span','timeline-id',row.txId));
+    if(row.receivingCurrency!==row.paymentCurrency||row.amountReceived!==row.amountPaid)button.append(element('span','timeline-received','수취 '+amountText(row.amountReceived,row.receivingCurrency)));
+    if(row.gapSeconds!==null)button.append(element('span','timeline-gap',row.gapSeconds===0?'이전 근거와 동일 시각':'이전 근거 후 '+durationText(row.gapSeconds)));
+    button.addEventListener('click',()=>selectItem('transaction',row.txId));li.append(button);list.append(li);
+  }
+  updateTimelineSelection();
+}
+
+function updateTimelineSelection(){
+  const rows=state.flow?.rows||[],index=state.selectedKind==='transaction'?rows.findIndex(row=>row.txId===state.selectedKey):-1;
+  $('timeline-progress').textContent=index<0?`${state.finding?'근거':'대상 거래'} ${rows.length}건`:`${index+1} / ${rows.length} 선택`;
+  $('flow-previous').disabled=index<=0;$('flow-next').disabled=!rows.length||index===rows.length-1;
+  document.querySelectorAll('[data-timeline-tx]').forEach(button=>{const active=state.selectedKind==='transaction'&&button.dataset.timelineTx===state.selectedKey;button.classList.toggle('selected',active);if(active)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current');});
+}
+
+function moveFlow(direction){
+  const rows=state.flow?.rows||[];if(!rows.length)return;
+  const index=state.selectedKind==='transaction'?rows.findIndex(row=>row.txId===state.selectedKey):-1;
+  const next=index<0?0:Math.max(0,Math.min(rows.length-1,index+direction));selectItem('transaction',rows[next].txId);
+  document.querySelector(`[data-timeline-tx="${rows[next].txId}"]`)?.scrollIntoView({block:'nearest',behavior:'auto'});
+}
+
+function renderTransactionInspector(edge){
+  if(!edge)return;const box=$('inspector');box.replaceChildren(element('span','inspector-kicker','TRANSACTION · 송금 거래'));
+  const title=element('h4','',edge.txId);title.append(copyButton(edge.txId));box.append(title,tagsFor(edge.txId));
+  const money=element('div','inspect-money',decimalText(edge.amountPaid));money.append(element('small','',edge.paymentCurrency));box.append(money);
+  const sender=element('div','inspect-row');sender.append(element('span','','보내는 계좌'),accountButton(edge.fromAccountKey));
+  const recipient=element('div','inspect-row');recipient.append(element('span','','받는 계좌'),accountButton(edge.toAccountKey));
+  box.append(sender,recipient,inspectRow('원본 거래 시각',timeText(edge.timestamp)),inspectRow('거래 방식',edge.paymentFormat),
+    inspectRow('수취 금액',amountText(edge.amountReceived,edge.receivingCurrency)),
+    element('div','inspect-footnote','금액과 통화는 원본 값입니다. 경로와 룰 점수만으로 동일 자금의 이동이나 범죄 여부를 확정하지 않습니다.'));
+}
+
+function renderAccountInspector(key){
+  const p=state.payload,{bank,account}=accountParts(key);const related=p.graph.edges.filter(edge=>edge.fromAccountKey===key||edge.toAccountKey===key);
+  const incoming=related.filter(edge=>edge.toAccountKey===key),outgoing=related.filter(edge=>edge.fromAccountKey===key);
+  const box=$('inspector');box.replaceChildren(element('span','inspector-kicker','ACCOUNT · 연결 계좌'));
+  const title=element('h4','',key);title.append(copyButton(key));box.append(title);
+  const tags=element('div','tags');tags.append(element('span','tag',`은행 ID ${bank}`));
+  if(key===p.target.fromAccountKey||key===p.target.toAccountKey)tags.append(element('span','tag target','대상 거래 연결'));
+  box.append(tags,inspectRow('원본 계좌 식별자',account));
+  if(expandableAccounts(p).some(row=>row.accountKey===key)){const button=element('button','button secondary account-expand-button','이 계좌 거래 최대 25건 더 조회');button.disabled=state.expanding||state.expansionInvalid;button.addEventListener('click',()=>expandAccount(key));box.append(button);}
+  const counts=element('div','inspect-summary');for(const [label,count] of [['입금 거래',incoming.length],['출금 거래',outgoing.length]]){const tile=element('div');tile.append(element('span','',label),element('strong','',`${count}건`));counts.append(tile);}box.append(counts);
+  box.append(element('span','inspector-kicker',`조회 범위 내 연결 거래 · ${related.length}건`));
+  for(const edge of related.slice(0,8)){const activity=accountActivity(edge,key);const button=element('button','inspect-tx-button',edge.txId);button.append(element('span','',`${activity.direction} · ${amountText(activity.amount,activity.currency)}`));button.addEventListener('click',()=>selectItem('transaction',edge.txId));box.append(button);}
+  if(related.length>8)box.append(element('div','inspect-footnote','최근 화면의 일부 거래만 표시했습니다. 전체 거래는 아래 거래 내역에서 확인하세요.'));
+  box.append(element('div','inspect-footnote','입출금 건수는 현재 조회 범위의 거래 기준입니다. 계좌 잔액·실소유자·전체 거래 이력은 확인되지 않았습니다.'));
+}
+
+function renderTable(){
+  const p=state.payload;if(!p)return;const all=$('only-evidence').checked?p.graph.edges.filter(edge=>p.highlightTxIds.includes(edge.txId)):p.graph.edges;
+  const pageSize=25,pages=Math.max(1,Math.ceil(all.length/pageSize));state.page=Math.min(state.page,pages-1);
+  const rows=all.slice(state.page*pageSize,(state.page+1)*pageSize),body=$('transactions-body');body.replaceChildren();
+  if(!rows.length){const tr=element('tr');const td=element('td','empty-note','현재 조건에 해당하는 탐지 근거 거래가 없습니다.');td.colSpan=6;tr.append(td);body.append(tr);}
+  for(const edge of rows){
+    const tr=element('tr',state.selectedKind==='transaction'&&state.selectedKey===edge.txId?'selected':'');tr.dataset.txId=edge.txId;
+    const idCell=element('td');const button=element('button','transaction-button',edge.txId);button.addEventListener('click',()=>selectItem('transaction',edge.txId));idCell.append(button);
+    const amount=element('td','amount-cell',amountText(edge.amountPaid,edge.paymentCurrency));
+    const badge=element('td');const tags=tagsFor(edge.txId);tags.className='';badge.append(tags);
+    tr.append(idCell,element('td','',timeText(edge.timestamp)),element('td','',edge.fromAccountKey),element('td','',edge.toAccountKey),amount,badge);body.append(tr);
+  }
+  $('table-range').textContent=all.length?`${state.page*pageSize+1}–${Math.min((state.page+1)*pageSize,all.length)} / ${all.length}건`:'0건';
+  $('previous-page').disabled=state.page===0;$('next-page').disabled=state.page>=pages-1;
+}
+
+function renderFindings(){
+  const p=state.payload,list=$('findings-list');list.replaceChildren();
+  if(!p.ruleResult.findings.length){list.append(element('div','empty-note','현재 조회 범위와 기본 룰 설정에서는 탐지 조건에 해당하는 패턴이 없습니다. 정상 거래의 확정 판정은 아닙니다.'));return;}
+  for(const [index,finding] of p.ruleResult.findings.entries()){
+    const card=element('article','finding');const top=element('div','finding-top');top.append(element('span','finding-number',String(index+1).padStart(2,'0')),element('h4','',ruleName(finding.ruleId)),element('span','tag evidence',`룰 ${finding.score}점`));
+    const detail=element('p','',finding.ruleId==='CYCLE'?'시간 순서에 따라 계좌를 거쳐 시작 계좌로 돌아오는 구조가 관찰됐습니다.':finding.ruleId==='FAN_IN'?'여러 계좌에서 한 계좌로 자금이 모이는 구조가 관찰됐습니다.':'한 계좌에서 여러 계좌로 자금이 나뉘어 송금되는 구조가 관찰됐습니다.');
+    const info=element('div','finding-meta');info.append(element('span','',`근거 거래 ${finding.evidenceTxIds.length}건`));
+    if(finding.facts.elapsedSeconds!==undefined)info.append(element('span','',`경과 ${durationText(finding.facts.elapsedSeconds)}`));
+    if(finding.facts.counterpartyCount!==undefined)info.append(element('span','',`상대 계좌 ${finding.facts.counterpartyCount}개`));
+    if(finding.facts.hops!==undefined)info.append(element('span','',`${finding.facts.hops}단계 경로`));
+    const ids=element('div','finding-ids');for(const id of finding.evidenceTxIds){const button=element('button','',id);button.addEventListener('click',()=>selectItem('transaction',id));ids.append(button);}
+    const actions=element('div','finding-actions');const view=element('button','finding-view','이 경로 보기 ↗');view.addEventListener('click',()=>{setMode('evidence',finding);selectItem('transaction',state.flow.rows[0].txId,false);$('flow-summary').scrollIntoView({behavior:'smooth',block:'start'});});
+    actions.append(element('span','section-kicker',finding.ruleId),view);card.append(top,detail,info,ids,actions);list.append(card);
+  }
+}
+
+function changeTab(name){const transactions=name==='transactions';$('transactions-tab').setAttribute('aria-selected',String(transactions));$('findings-tab').setAttribute('aria-selected',String(!transactions));$('transactions-tab').classList.toggle('active',transactions);$('findings-tab').classList.toggle('active',!transactions);$('transactions-panel').hidden=!transactions;$('findings-panel').hidden=transactions;}
+
+async function initialize(){
+  const banner=element('section','demo-banner');banner.id='demo-banner';banner.setAttribute('aria-label','시연 데이터와 연결 상태');
+  const label=element('strong','','예시 데이터');label.id='demo-mode-label';
+  const note=element('p','','기존 API 응답 구조를 사용하는 고정 합성 시연입니다. TX-000619283 · 이전 7일 · 2홉 · 69→72건. 실시간 DB·모델에 연결하지 않습니다.');note.id='demo-mode-note';
+  const start=element('button','button secondary','시연 처음부터');start.id='demo-start';banner.append(label,note,start);
+  const steps=element('ol','demo-steps');
+  for(const [number,text,target] of [['01','시연 거래 선택','target-id'],['02','그래프·원본 확인','flow-summary'],['03','초안·인용 확인','review-card'],['04','저장본 다시 열기','history-message']]){
+    const li=element('li'),button=element('button');button.append(element('b','',number),document.createTextNode(text));button.addEventListener('click',()=>$(target).scrollIntoView({behavior:'smooth',block:'center'}));li.append(button);steps.append(li);
+  }
+  document.querySelector('.workspace').prepend(banner,steps);
+  const identity=element('div','identity-check');identity.id='identity-check';identity.hidden=true;const tx=element('strong');tx.id='identity-tx';const result=element('span');result.id='identity-result';identity.append(tx,result);document.querySelector('.metrics').after(identity);
+  try{const response=await fetch('/_frontend/config');if(!response.ok)throw Error();Object.assign(runtime,await response.json());}
+  catch{overlay('연결 설정을 읽지 못했습니다','프론트 실행 서버를 확인하고 화면을 다시 열어 주세요.',true);return;}
+  if(!isFixture()){$('demo-mode-label').textContent='백엔드 API';$('demo-mode-note').textContent='연결된 API 응답으로 그래프·룰·초안을 조회합니다. 저장본은 당시 결과로 표시합니다.';}
+  document.querySelector('.live-dot').textContent=isFixture()?'예시 응답':'API 조회';
+  document.querySelector('.history-heading p').textContent=isFixture()?'이 PC에 시연 그래프·초안·인용 원문을 저장합니다. 프론트 서버 재시작 후에도 다시 열 수 있습니다.':'저장 당시 그래프·룰과 준비한 초안을 보관합니다.';
+  $('refresh').title='현재 조건으로 다시 조회';$('refresh').setAttribute('aria-label','현재 조건으로 다시 조회');
+  start.addEventListener('click',()=>{$('hops').value='2';$('days').value='7';$('only-evidence').checked=false;loadTransaction('TX-000619283');});
+  try{graph=new RelationshipGraph($('graph'),selectItem,counts=>{$('visible-count').textContent=`표시 ${counts.accounts}계좌 · ${counts.transactions}거래`;});}
+  catch(error){overlay('그래프를 표시할 수 없습니다',error.message,true);return;}
+  review=new ReviewPanel(txId=>{selectItem('transaction',txId);$('flow-summary').scrollIntoView({behavior:'smooth',block:'start'});},()=>loadTransaction(state.selectedId),()=>historyPanel?.sync());
+  historyPanel=new HistoryPanel(()=>({payload:state.payload,reviewId:review.result?.reviewId||null,busy:state.expanding||state.expansionInvalid||review.pending}),openHistory);
+  $('history-live').addEventListener('click',()=>loadTransaction(state.selectedId));
+  $('help-open').addEventListener('click',()=>$('help-dialog').showModal());$('help-close').addEventListener('click',()=>$('help-dialog').close());
+  $('case-search').addEventListener('input',renderCases);$('mobile-cases').addEventListener('change',event=>loadTransaction(event.target.value));
+  $('refresh').addEventListener('click',()=>state.selectedId?loadTransaction(state.selectedId):loadCases());
+  $('expand-load').addEventListener('click',()=>expandAccount());
+  for(const id of ['hops','days'])$(id).addEventListener('change',()=>loadTransaction(state.selectedId));
+  document.querySelectorAll('[data-mode]').forEach(button=>button.addEventListener('click',()=>setMode(button.dataset.mode)));
+  $('zoom-in').addEventListener('click',()=>graph.zoom(1.3));$('zoom-out').addEventListener('click',()=>graph.zoom(1/1.3));
+  $('fit').addEventListener('click',()=>graph.fit());$('layout').addEventListener('click',()=>graph.layout());
+  $('labels').addEventListener('click',()=>{$('labels').setAttribute('aria-pressed',String(graph.toggleLabels()));updateNotice();});
+  $('flow-previous').addEventListener('click',()=>moveFlow(-1));$('flow-next').addEventListener('click',()=>moveFlow(1));
+  $('transactions-tab').addEventListener('click',()=>changeTab('transactions'));$('findings-tab').addEventListener('click',()=>changeTab('findings'));
+  $('only-evidence').addEventListener('change',()=>{state.page=0;renderTable();});
+  $('previous-page').addEventListener('click',()=>{state.page--;renderTable();});$('next-page').addEventListener('click',()=>{state.page++;renderTable();});
+  $('export').addEventListener('click',()=>{if(!state.payload)return;const blob=new Blob([JSON.stringify(state.payload,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`traceon-${state.payload.graph.targetTxId}-${state.payload.graph.meta.hops}hop.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+  await Promise.allSettled([loadCases(),historyPanel.reload()]);
+}
+
+async function loadCases(){
+  const generation=state.request;
+  try{
+    const data=await api('/api/cases');state.cases=data.items;if(!state.payload?.history)connection(true);renderCases();
+    const select=$('mobile-cases');select.replaceChildren();for(const row of data.items){const option=element('option','',`${row.txId} · ${amountText(row.amountPaid,row.paymentCurrency)}`);option.value=row.txId;select.append(option);}
+    if(generation===state.request&&!state.payload)await loadTransaction(state.selectedId||data.items[0]?.txId);
+  }catch(error){if(generation!==state.request||state.payload?.history)return;connection(false);overlay('응답 연결을 확인해 주세요',error.message,true);$('case-list').replaceChildren(element('div','empty-note',error.message));}
+}
+
+if(document.readyState==='complete')initialize();else window.addEventListener('DOMContentLoaded',initialize,{once:true});

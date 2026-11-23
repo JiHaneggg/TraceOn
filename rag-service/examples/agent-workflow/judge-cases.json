@@ -1,0 +1,44 @@
+[
+  {
+    "caseId": "judge-dev-path",
+    "split": "development",
+    "criterion": "claim_support",
+    "claim": "조회된 거래에서 A → B → C → A 순환 구조가 관찰된다. 같은 자금이 이동했는지는 확인되지 않았다.",
+    "expected": "passed"
+  },
+  {
+    "caseId": "judge-dev-funds",
+    "split": "development",
+    "criterion": "claim_support",
+    "claim": "순환한 돈은 출발 계좌에서 보낸 바로 그 자금이다.",
+    "expected": "held"
+  },
+  {
+    "caseId": "judge-dev-source",
+    "split": "development",
+    "criterion": "document_support",
+    "claim": "제공된 의심거래보고 원문은 합당한 근거를 고려하지 않고 보고 방법을 정하도록 설명한다.",
+    "expected": "rejected"
+  },
+  {
+    "caseId": "judge-eval-alternative",
+    "split": "evaluation",
+    "criterion": "normal_trade_consideration",
+    "claim": "계좌 사이에 순환 경로가 관찰된다. 정산 또는 내부 자금 이동도 가능한 가설이다. 실제 소유자와 거래 목적, 정산 증빙을 확인해 가설을 구분해야 한다.",
+    "expected": "passed"
+  },
+  {
+    "caseId": "judge-eval-unexplored",
+    "split": "evaluation",
+    "criterion": "normal_trade_consideration",
+    "claim": "계좌 사이에 순환 경로가 관찰된다. 추가 확인이 필요하다.",
+    "expected": "held"
+  },
+  {
+    "caseId": "judge-eval-ownership",
+    "split": "evaluation",
+    "criterion": "document_support",
+    "claim": "제공된 고객확인 원문은 실제 소유자와 자금 원천을 확인 항목에서 제외한다고 설명한다.",
+    "expected": "rejected"
+  }
+]

@@ -66,6 +66,8 @@ curl.exe -s http://127.0.0.1:8092/v1/rag/reports/prepare -H "Content-Type: appli
 
 ## Agent와 실행
 
+Agent의 같은 조회 전체 흐름은 `run_review_workflow`를 사용한다. 식별 → 사실·원문 수집 → 기존 설명 초안 → 종합 검증을 연결하며 통과·보류·반려, 재시도 횟수와 사람 검토 필요 여부를 반환한다. 입력·고정 데이터 실행·모델 연결 계약은 [Agent 검토 흐름](agent-review-workflow.md)을 참조한다.
+
 기존 4개 도구에 `get_citation`, `resolve_report_fact`, `verify_review_report`, `prepare_review_report`를 추가했다. `agent_tools.json`과 `AgentTools.call()`을 사용한다. `EvidenceRepository`와 `rag_server.py --raw-dir/--archive-dir`로 원문·과거 색인 위치를 지정할 수 있다.
 
 ```powershell

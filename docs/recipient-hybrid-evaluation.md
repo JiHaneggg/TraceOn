@@ -42,3 +42,35 @@ python scripts/evaluate-recipient-hybrid.py evaluate --freeze artifacts/recipien
 ```
 
 이번 기록은 `artifacts/recipient-hybrid-frozen-20261123.json`과 `artifacts/recipient-hybrid-fresh-20261123.json`에 있다. 평가 결과, 데이터, 학습 파라미터는 Git 제외 폴더에 보관한다. `ml-service/recipient_hybrid.py`는 오프라인 평가 모듈이며, 팀 통합은 [담당 채팅 시작 안내](role-chat-handoffs.md)를 따른다.
+
+## Recall 후보 선별과 Agent Judge 연결
+
+`evaluate-recall-judge.py`는 위에 동결한 평가 250건을 원본 읽기 전용 색인과 같은 모델·경계로 재현한다. 두 후보 방식의 기대 지표, 표본 순서, 표본 가중치가 기존 기록과 일치해야 검토로 진행한다. 선택한 후보 방식에서 먼저 걸린 순환·집금·정상 거래를 유형별 1건씩 고른다. 유형 라벨은 평가 사례 선정과 지표 계산에 사용한다. Judge 입력에는 해당 거래 그래프·검증된 초안·원문 근거를 사용한다.
+
+| 후보 방식 | 선별 건수 | 라벨 양성 미선별 | 보정 Recall | Judge 시연 모의 분기 |
+| --- | ---: | ---: | ---: | --- |
+| 룰 | 198 | 12 | 87.78% | 통과 1 · 보류 1 · 반려 1 |
+| 룰+ML · 이력 여부·증가량 | 175 | 16 | 83.80% | 통과 1 · 보류 1 · 반려 1 |
+
+양쪽 모두 코드가 금액·시각·인용을 검사한 뒤 Judge 단계에 도달했다. 세 가지 분기는 모의 응답으로 확인했다. 동일한 조회의 거래 ID·원문 버전·판정 근거 ID와 판정 사유가 결과에 남는다. Judge 보류와 반려 이후에도 후보 선별 여부와 Recall 수치는 유지한다. 수치를 사람 라벨과 비교하는 다음 의미 평가에서는 별도 정답을 확정한다.
+
+```powershell
+python -B scripts/evaluate-recall-judge.py `
+    --freeze artifacts/recipient-hybrid-frozen-20261123.json `
+    --evaluation artifacts/recipient-hybrid-fresh-20261123.json `
+    --gate rule --judge-mode mock `
+    --output artifacts/recall-judge/next-rule-mock.json
+```
+
+룰+ML을 비교할 때는 `--gate rule-ml`로 실행한다. `--judge-mode openai`는 동일한 IBM 합성 거래 표본의 후보 3건에 공개 RAG 원문과 단일 Judge를 사용한다. 실행하는 PowerShell 프로세스의 `OPENAI_API_KEY`, `OPENAI_MODEL`을 읽는다. 실제 Judge 성능 비교는 다른 그래프를 포함한 정답 세트로 평가한다. 저장한 결과는 `artifacts/recall-judge/`에 보관한다.
+
+### 실제 OpenAI Judge 재검증 · 2026-11-23
+
+룰로 선별한 순환 유형·집금 유형·정상 라벨 사례 각 1건을 `gpt-6-luna`와 단일 Judge v2로 두 번 검토했다. 두 실행의 거래·그래프·룰·Context·코퍼스와 250건 후보 지표는 같다. 첫 실행은 초안의 지급 방식 확인 항목에 ‘모두 Cash로 기록됨’이라는 문구가 있어 문서 해석에서 3건 모두 반려됐다. 보고서에 `Cash 조건 미충족`을 명시한 후에는 3건 모두 통과했고, 문서 해석 항목도 모두 근거가 뒷받침한다고 평가됐다.
+
+| 결과 파일 | 실제 호출 / 유효 판정 | 초안 판정 |
+| --- | ---: | --- |
+| `20261123-rule-openai.json` | 3 / 3 | 반려 3 |
+| `20261123-rule-openai-v2.json` | 3 / 3 | 통과 3 |
+
+수정 후 평균 실행 시간은 초안·근거 처리와 모델 응답을 포함해 거래당 22.20초다. 룰의 보정 Recall은 87.78%이고 미선별 이상거래는 12건이다. 초안 통과 이후에는 사람 검토가 필요하다. 이번 결과는 세 사례의 실제 연동 확인이며, 다음 의미 평가에는 별도 거래 그래프와 검수 라벨을 사용한다.

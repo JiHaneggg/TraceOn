@@ -282,5 +282,52 @@
       ],
       "additionalProperties": false
     }
+  },
+  {
+    "type": "function",
+    "name": "run_review_workflow",
+    "description": "동일한 백엔드 Graph·Rule로 식별, 근거 수집, 초안, 코드 검증을 실행합니다. 코드 검증 통과 후 judgeMode=openai는 단일 검토, judgeMode=debate는 의심 근거와 정상 거래 가능성을 검토합니다. 항목별 판정, 검증 점수, 재시도 횟수와 사람 검토 필요 여부를 남깁니다.",
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "graph": {
+          "type": "object"
+        },
+        "ruleResult": {
+          "type": "object"
+        },
+        "query": {
+          "type": "string"
+        },
+        "corpusSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "template",
+            "openai"
+          ],
+          "default": "template"
+        },
+        "maxRetries": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 0
+        },
+        "judgeMode": {
+          "type": "string",
+          "enum": ["off", "openai", "debate"],
+          "default": "off"
+        }
+      },
+      "required": [
+        "graph",
+        "ruleResult"
+      ]
+    }
   }
 ]

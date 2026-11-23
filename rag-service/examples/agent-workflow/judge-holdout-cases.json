@@ -1,0 +1,38 @@
+[
+  {
+    "caseId": "judge-holdout-incoming",
+    "split": "holdout",
+    "criterion": "claim_support",
+    "claim": "조회 구간에서 서로 다른 세 계좌가 D 계좌로 각각 송금한 흐름이 관찰된다."
+  },
+  {
+    "caseId": "judge-holdout-beneficial-owner",
+    "split": "holdout",
+    "criterion": "claim_support",
+    "claim": "D 계좌로 보낸 세 계좌의 실소유자는 같은 사람이다."
+  },
+  {
+    "caseId": "judge-holdout-direction",
+    "split": "holdout",
+    "criterion": "claim_support",
+    "claim": "조회에 포함된 세 거래는 모두 D 계좌가 서로 다른 세 계좌로 송금한 거래다."
+  },
+  {
+    "caseId": "judge-holdout-settlement",
+    "split": "holdout",
+    "criterion": "normal_trade_consideration",
+    "claim": "D 계좌의 집금은 공동 비용 정산일 수도 있다. 송금인과 D의 관계, 비용 명세서, 송금 메모를 확인한 뒤 어느 설명이 맞는지 판단해야 한다."
+  },
+  {
+    "caseId": "judge-holdout-alternatives",
+    "split": "holdout",
+    "criterion": "normal_trade_consideration",
+    "claim": "동일 수취 계좌에 송금이 집중됐다. 필요하면 더 검토한다."
+  },
+  {
+    "caseId": "judge-holdout-reporting",
+    "split": "holdout",
+    "criterion": "document_support",
+    "claim": "제공된 의심거래보고 자료는 보고책임자가 거래상대방과 자료 종류를 확인할 필요가 없다고 설명한다."
+  }
+]

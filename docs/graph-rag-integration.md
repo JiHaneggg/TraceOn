@@ -31,6 +31,8 @@
 
 ## 화면용 연결 계약
 
+같은 Graph·Rule을 사용하는 Agent 실행은 [Agent 검토 흐름](agent-review-workflow.md)의 `run_review_workflow`에서 제공한다. Agent의 재시도/상태 반환은 Python 도구 계약이며 아래 화면용 HTTP 계약과 별도다.
+
 브라우저는 DB/코퍼스 자격증명 없이 현재 화면의 ID만 보낸다. GET graph 응답의 `reviewSnapshotId`는 서버가 보관한 Graph·Rule과 연결된다.
 
 | 경로 | 입력 | 결과 |

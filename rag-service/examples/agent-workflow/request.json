@@ -1,0 +1,97 @@
+{
+  "graph": {
+    "schemaVersion": "1.0",
+    "targetTxId": "DEMO-validation-cycle-2",
+    "asOf": "2022-09-01T12:02:00",
+    "windowStart": "2022-08-25T12:02:00",
+    "nodes": [
+      {
+        "accountKey": "1:DEMO-validation-cycle-A"
+      },
+      {
+        "accountKey": "1:DEMO-validation-cycle-B"
+      },
+      {
+        "accountKey": "1:DEMO-validation-cycle-C"
+      }
+    ],
+    "edges": [
+      {
+        "txId": "DEMO-validation-cycle-0",
+        "timestamp": "2022-09-01T12:00:00",
+        "fromAccountKey": "1:DEMO-validation-cycle-A",
+        "toAccountKey": "1:DEMO-validation-cycle-B",
+        "amountPaid": "1000.10",
+        "paymentCurrency": "US Dollar",
+        "amountReceived": "1000.10",
+        "receivingCurrency": "US Dollar",
+        "paymentFormat": "ACH"
+      },
+      {
+        "txId": "DEMO-validation-cycle-1",
+        "timestamp": "2022-09-01T12:01:00",
+        "fromAccountKey": "1:DEMO-validation-cycle-B",
+        "toAccountKey": "1:DEMO-validation-cycle-C",
+        "amountPaid": "1001.10",
+        "paymentCurrency": "US Dollar",
+        "amountReceived": "1001.10",
+        "receivingCurrency": "US Dollar",
+        "paymentFormat": "ACH"
+      },
+      {
+        "txId": "DEMO-validation-cycle-2",
+        "timestamp": "2022-09-01T12:02:00",
+        "fromAccountKey": "1:DEMO-validation-cycle-C",
+        "toAccountKey": "1:DEMO-validation-cycle-A",
+        "amountPaid": "1002.10",
+        "paymentCurrency": "US Dollar",
+        "amountReceived": "1002.10",
+        "receivingCurrency": "US Dollar",
+        "paymentFormat": "ACH"
+      }
+    ],
+    "meta": {
+      "hops": 2,
+      "maxNeighbors": 50,
+      "maxEdges": 1000,
+      "truncated": false,
+      "timeDirection": "past-only",
+      "sourceScope": "synthetic_smoke_demo",
+      "sourceGraphComplete": false
+    }
+  },
+  "ruleResult": {
+    "schemaVersion": "1.0",
+    "txId": "DEMO-validation-cycle-2",
+    "findings": [
+      {
+        "ruleId": "CYCLE",
+        "score": 90,
+        "evidenceTxIds": [
+          "DEMO-validation-cycle-0",
+          "DEMO-validation-cycle-1",
+          "DEMO-validation-cycle-2"
+        ],
+        "facts": {
+          "hops": 3
+        }
+      }
+    ],
+    "config": {
+      "min_counterparties": 3,
+      "window_minutes": 1440,
+      "max_cycle_hops": 4,
+      "threshold": 65,
+      "fan_in_min_counterparties": null,
+      "fan_out_min_counterparties": null
+    },
+    "limitations": {
+      "subgraphTruncated": false,
+      "sourceGraphComplete": false,
+      "cycleSearchTruncated": false
+    },
+    "ruleScore": 90,
+    "flagged": true
+  },
+  "query": "의심거래보고 합당한 근거 보고 방법 절차"
+}

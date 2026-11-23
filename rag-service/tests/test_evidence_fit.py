@@ -17,7 +17,7 @@ from evidence import build_context
 from evidence_fit import MIN_CONDITIONS, policy_digest, validate_policy, assessment_response
 from evidence_lookup import EvidenceRepository
 from retrieval import Index
-from reports import generate_report, default_plan, validate_plan
+from reports import generate_report, default_plan, render_report, validate_plan
 from report_verification import verify_report
 from agent_tools import AgentTools
 from rag_server import handler_for
@@ -123,6 +123,26 @@ class EvidenceFitTest(unittest.TestCase):
         self.assertEqual(conditions['client_identity'],'not_verified')
         self.assertEqual(conditions['economic_purpose'],'not_verified')
         self.assertFalse(finding['boundedRequirementsMet'])
+
+    def test_unmet_payment_conditions_render_as_gaps_and_legacy_reports_verify(self):
+        for kind, payment_format in (("fan_in", "Cash"), ("fan_out", "Wire")):
+            with self.subTest(kind=kind):
+                graph = self.graph(kind)
+                for row in graph["edges"]:
+                    row["paymentFormat"] = "ACH"
+                context = build_context(self.index, graph)
+                report = generate_report(context)
+                legacy_label = f"관련 거래의 원천 지급 방식이 모두 {payment_format}로 기록됨"
+                self.assertIn(f"{payment_format} 조건 미충족", report["markdown"])
+                self.assertNotIn(legacy_label, report["markdown"])
+                self.assertTrue(verify_report(self.repo, graph, None, report)["valid"])
+
+                legacy = render_report(context, report["plan"], report["generation"], legacy_condition_labels=True)
+                self.assertIn(legacy_label, legacy["markdown"])
+                self.assertTrue(verify_report(self.repo, graph, None, legacy)["valid"])
+
+                report["markdown"] = legacy["markdown"]
+                self.assertFalse(verify_report(self.repo, graph, None, self.rehash(report))["valid"])
 
     def test_insufficient_question_is_not_answered_by_other_references(self):
         context=self.context(query='KB국민은행 내부 규정 STR 승인 기준')

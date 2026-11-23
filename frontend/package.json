@@ -1,0 +1,9 @@
+{
+  "name": "traceon-review-frontend",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": {"node": ">=22"}
+}

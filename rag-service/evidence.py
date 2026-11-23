@@ -161,6 +161,8 @@ def build_context(index, graph, rule_result=None, query=None):
         context["limitations"][3] = "국내 법령 원문·공식 안내와 해외 참고 사례를 구분합니다. 해외 자료를 한국의 보고 의무·금액 기준으로 적용하지 않습니다."
         context["limitations"][4] = ("선별한 국내 조문은 참고 근거입니다. 거래 시각에 대한 법령 적용·유효 구간과 은행 내규는 별도 확인해야 합니다."
                                      if has_domestic_law else "국내 법령 원문과 은행 내규는 아직 확보되지 않았습니다. 순환 구조만으로 범죄·동일 자금의 이동을 확정하지 않습니다.")
+        if all(row["sourceKind"] == "synthetic_fixture" for row in index.chunks):
+            context["limitations"][3] = "문서 코퍼스는 합성 테스트 자료로 구성되어 있습니다. 실제 거래에 대한 법령 적용은 별도로 검토해야 합니다."
     fitness = assess(index, findings, context["citations"], context["evidenceTransactions"], searches[0])
     if fitness is not None:
         context["contextVersion"] = "evidence-fit-v3"

@@ -63,6 +63,8 @@ data/evaluation/
 artifacts/
 data/rag/
 data/history/
+frontend/fixtures/
+frontend/.local/
 
 # ===== OS =====
 .DS_Store

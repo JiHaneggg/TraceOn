@@ -1,0 +1,22 @@
+[
+  {
+    "documentId": "synthetic-str",
+    "title": "의심거래보고 정의 · 합성 테스트 자료",
+    "url": "https://example.invalid/traceon/synthetic-str",
+    "publisher": "TraceOn 합성 데이터",
+    "jurisdiction": "KR",
+    "sourceKind": "synthetic_fixture",
+    "effectiveDate": null,
+    "sections": [{"heading": "의심거래보고 정의", "end": "끝"}]
+  },
+  {
+    "documentId": "synthetic-cdd",
+    "title": "고객확인 정의 · 합성 테스트 자료",
+    "url": "https://example.invalid/traceon/synthetic-cdd",
+    "publisher": "TraceOn 합성 데이터",
+    "jurisdiction": "KR",
+    "sourceKind": "synthetic_fixture",
+    "effectiveDate": null,
+    "sections": [{"heading": "고객확인 정의", "end": "끝"}]
+  }
+]

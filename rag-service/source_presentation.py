@@ -9,12 +9,15 @@ LABELS = OrderedDict([
     ("domestic_internal", "국내 내부 지침"),
     ("foreign_reference", "해외 참고 사례"),
     ("other_reference", "기타 참고 자료"),
+    ("synthetic_fixture", "합성 테스트 자료"),
 ])
 
 
 def source_display(row):
     kind, jurisdiction = row.get("sourceKind"), row.get("jurisdiction")
-    if jurisdiction != "KR":
+    if kind == "synthetic_fixture":
+        category = kind
+    elif jurisdiction != "KR":
         category = "foreign_reference"
     else:
         category = {"law": "domestic_law", "official_guidance": "domestic_guidance",
@@ -25,6 +28,7 @@ def source_display(row):
         "domestic_internal": "제공된 내부 지침입니다. 허용된 조직·버전·적용 범위에서 검토합니다.",
         "foreign_reference": "해외 징후·유형 참고 자료입니다. 한국의 보고 의무·금액 기준으로 적용하지 않습니다.",
         "other_reference": "참고 자료입니다. 발행기관·관할·적용 범위를 확인합니다.",
+        "synthetic_fixture": "TraceOn 검증용으로 만든 문서입니다. 실제 법령이나 기관 안내의 근거로 사용하지 않습니다.",
     }[category]
     return {"category": category, "label": LABELS[category], "jurisdiction": jurisdiction,
             "sourceKind": kind, "effectiveDate": row.get("effectiveDate"),

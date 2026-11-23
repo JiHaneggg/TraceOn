@@ -28,6 +28,11 @@ REVIEW_ITEMS = {
     "scope": "제한된 조회 범위 밖의 거래와 잘린 경로가 있는지 확인해야 합니다."
 }
 
+UNMET_PAYMENT_FORMAT_LABELS = {
+    "condition:cash_format_recorded": "관련 거래의 원본 지급 방식 확인 · Cash 조건 미충족",
+    "condition:wire_format_recorded": "관련 거래의 원본 지급 방식 확인 · Wire 조건 미충족",
+}
+
 
 def observation_catalog(context):
     facts = {fact["factId"]: fact["value"] for fact in context["reportFacts"]}
@@ -138,7 +143,7 @@ def openai_plan(context, transport=None):
         raise ReportUnavailable("Provider transport/output validation failed; no fallback report was generated") from None
 
 
-def render_report(context, plan, generation):
+def render_report(context, plan, generation, *, legacy_condition_labels=False):
     validate_plan(context, plan)
     observations = {row["observationId"]: row for row in observation_catalog(context)}
     citations = {row["chunkId"]: row for row in context["citations"]}
@@ -164,6 +169,7 @@ def render_report(context, plan, generation):
     if disposition and disposition["status"] == "abstained":
         lines += ["", "## 원질문 답변 보류", "", disposition["abstentionReason"] or "요청 범위의 자료가 없습니다.",
                   "", disposition["notice"], ""]
+    uses_explicit_condition_labels = False
     if fitness:
         lines += ["", "## 근거 적합성·추가 확인", "", "**" + fitness["label"] + "**", "",
                   fitness["notice"], "", "법률 적용·은행 내규·자유 문장의 의미 검증은 완료되지 않았습니다.", ""]
@@ -175,7 +181,12 @@ def render_report(context, plan, generation):
                 state = "관련 원문 연결" if role["status"] == "reference_available" else "근거 부족"
                 lines += ["- " + role["label"] + ": " + state]
             lines += ["", "추가로 확인할 항목:"]
-            lines += ["- " + item["label"] + ": " + item["reason"] for item in finding["missingEvidence"]]
+            for item in finding["missingEvidence"]:
+                label = item["label"]
+                if not legacy_condition_labels and item["id"] in UNMET_PAYMENT_FORMAT_LABELS:
+                    label = UNMET_PAYMENT_FORMAT_LABELS[item["id"]]
+                    uses_explicit_condition_labels = True
+                lines.append(f"- {label}: {item['reason']}")
             lines += [""]
         if not fitness["findings"]:
             lines += ["- 현재 룰 탐지가 없다는 결과만으로 정상 거래를 확정하지 않습니다.", ""]
@@ -215,6 +226,8 @@ def render_report(context, plan, generation):
                                      "sufficientForAutomatedDecision": False}
     if disposition:
         report["answerDisposition"] = disposition
+    if uses_explicit_condition_labels:
+        report["conditionRenderingVersion"] = "1.1"
     report["reportId"] = "RPT-" + digest(canonical(report))[:24]
     return report
 

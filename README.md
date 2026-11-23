@@ -4,7 +4,7 @@
 
 그래프 데이터(Neo4j) 기반 위험 거래 탐지 시스템입니다. 동일한 타겟 데이터에 대해 세 가지 탐지 방식을 구현하고 성능을 비교합니다.
 
-현재 MVP는 **룰·ML 점수 결합 + LLM의 근거 설명**을 목표로 하며, DB·룰 검증 기반과 RAG 검색·검토 초안 API를 구현했습니다. 로컬 화면에서 그래프→RAG 근거→검토 초안까지 연결했습니다. ML·Spring 운영 Graph API·실제 LLM 호출·지속적인 분석 이력 저장은 추가 통합이 필요합니다. 아래 표는 초기 비교 실험 계획을 포함합니다.
+현재 MVP는 **룰·ML 점수 결합 + LLM의 근거 설명**을 목표로 하며, DB·룰 검증 기반과 RAG 검색·검토 초안 API를 구현했습니다. 로컬 화면에서 그래프→RAG 근거→검토 초안까지 연결했습니다. [Spring 백엔드](docs/backend-spring-integration.md)도 같은 그래프 조회·계좌 추가 조회·초안 검증·분석 저장/복원 계약을 제공합니다. 운영 권한·감사/보존 정책, 온라인 ML 통합과 실제 LLM 호출은 후속입니다. 아래 표는 초기 비교 실험 계획을 포함합니다.
 
 팀원이 처음 실행할 때는 [팀 공유용 실행 안내](docs/team-handoff.md)를 따르세요. 데이터·Docker·API 키 없이 140개 Python 테스트부터 실행할 수 있습니다.
 
@@ -74,6 +74,10 @@ TraceOn/
 | `develop` | 개발 통합 |
 | `feature/*` | 기능 단위 작업 → `develop`으로 PR |
 
+## 현재 진행 상황
+
+[담당별 구현과 다음 작업](docs/team-implementation-status.md)에서 실측 결과와 남은 연동을 확인할 수 있습니다. 별도 프론트는 [실행 안내](frontend/README.md)를 따릅니다.
+
 ## 실행 방법
 
 현재 PC의 Docker 없는 로컬 Neo4j·룰·RAG 실행은 `scripts/start-local-services.ps1`을 사용합니다. RAG 최초 색인 생성·보고서 검증은 [RAG V2 가이드](docs/rag-v2.md)를 따릅니다. 아래 Docker 실행은 팀 공통 대안입니다.
@@ -101,7 +105,7 @@ cd backend; .\gradlew.bat bootRun
 
 최신 로컬 보강: [순환 유형 공식 자료](docs/rag-cycle-sources.md)로 10문서·61청크, [멘토 검수용 질문 초안 24개](docs/mentor-review-questions.md)를 준비했습니다. [제어형 보고서 검증 평가](docs/verifier-evaluation.md)는 정상30·결함30개를 고정해 구조적 검증을 측정했으며 실제 LLM 의미 판단·재시도는 미측정입니다. 기존 데이터·룰·RAG 검사 251개와 그래프/연결 검사 55개가 포함됩니다. 검토 초안은 템플릿 기반이며 실제 LLM 의미 판단·재시도는 미측정입니다.
 
-로컬 그래프 시각화: [실행·검증 안내](docs/graph-viewer.md). `scripts/start-graph-viewer.ps1` 실행 후 `http://127.0.0.1:8093`에서 거래 선택·실제 Neo4j 조회·근거 경로 강조·원본 상세를 확인할 수 있습니다. RAG 근거·원문·거래 사실 조회·초안 재검사·다운로드까지 연결했습니다. [그래프→RAG 연결 안내](docs/graph-rag-integration.md)를 참고하세요. Spring 운영 API와 지속적인 분석 이력 저장은 후속입니다.
+로컬 그래프 시각화: [실행·검증 안내](docs/graph-viewer.md). `scripts/start-graph-viewer.ps1` 실행 후 `http://127.0.0.1:8093`에서 거래 선택·실제 Neo4j 조회·근거 경로 강조·원본 상세를 확인할 수 있습니다. RAG 근거·원문·거래 사실 조회·초안 재검사·다운로드까지 연결했습니다. [그래프→RAG 연결 안내](docs/graph-rag-integration.md)와 [동일 계약의 Spring API](docs/backend-spring-integration.md)를 참고하세요.
 
 DB 조회 점검: [진단 기준·관측 결과](docs/db-query-audit.md). 현재 적재된 시연 자료의 원본 정합성·조회 상한에 따른 생략·지연·인덱스 실행 계획을 읽기 전용으로 확인합니다. 거래 포함 비율과 AML Recall을 구분하며, 운영 조회 상한과 룰은 변경하지 않습니다.
 

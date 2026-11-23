@@ -14,7 +14,8 @@ RUN ./gradlew bootJar --no-daemon -x test
 # ---------- 2단계: 실행 ----------
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-RUN useradd --system --uid 10001 traceon
+RUN useradd --system --uid 10001 traceon \
+    && mkdir -p /app/history && chown traceon /app/history
 COPY --from=build /workspace/build/libs/*.jar app.jar
 USER traceon
 EXPOSE 8080

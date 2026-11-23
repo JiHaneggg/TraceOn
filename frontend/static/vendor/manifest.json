@@ -1,0 +1,11 @@
+{
+  "name": "cytoscape",
+  "version": "3.35.0",
+  "license": "MIT",
+  "source": "https://github.com/cytoscape/cytoscape.js",
+  "tarballIntegrity": "sha512-sMvBIXiGMnhkCaWz2R06FwF/27MNlS+Tqvi17foO9UhnUg3XGZccKjxsvEqQFAQYMSSZmN5SxYzUYlQ0DOJJ3g==",
+  "files": {
+    "CYTOSCAPE-LICENSE": "eb319c6e6f233607f71e8e2f450391751883cfc0eeb3ca7ef574c13d1d9c2203",
+    "cytoscape.min.js": "71fa9ebec21a7ca2c40cff6aacc30d1f6464e363662ad4b2c197e1adc770cd94"
+  }
+}

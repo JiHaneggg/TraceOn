@@ -1,0 +1,42 @@
+[
+  {
+    "graphId": "G1",
+    "date": "2022-09-21",
+    "transactions": [
+      {"time": "09:00:00", "sender": "A", "recipient": "B", "amount": "1200.00", "format": "ACH"},
+      {"time": "09:07:00", "sender": "B", "recipient": "C", "amount": "1195.00", "format": "ACH"},
+      {"time": "09:15:00", "sender": "C", "recipient": "A", "amount": "1185.00", "format": "ACH"}
+    ],
+    "claims": [
+      {"caseId": "MG-01", "criterion": "claim_support", "claim": "A→B→C→A 순서로 이어지는 송금 경로가 관찰됐다."},
+      {"caseId": "MG-02", "criterion": "claim_support", "claim": "첫 송금의 원금과 마지막 송금의 자금은 동일하다."},
+      {"caseId": "MG-03", "criterion": "claim_support", "claim": "C→A 거래가 B→C 거래보다 먼저 발생했다."}
+    ]
+  },
+  {
+    "graphId": "G2",
+    "date": "2022-09-22",
+    "transactions": [
+      {"time": "10:00:00", "sender": "E", "recipient": "H", "amount": "410.00", "format": "Cash"},
+      {"time": "10:08:00", "sender": "F", "recipient": "H", "amount": "525.00", "format": "ACH"},
+      {"time": "10:31:00", "sender": "G", "recipient": "H", "amount": "640.00", "format": "Cheque"}
+    ],
+    "claims": [
+      {"caseId": "MG-04", "criterion": "normal_trade_consideration", "claim": "공동 행사비 정산일 수 있으므로 송금인과 H의 관계, 행사비 명세서, 송금 메모를 확인해야 한다."},
+      {"caseId": "MG-05", "criterion": "claim_support", "claim": "H가 받은 세 거래의 목적은 행사 참가비로 확인됐다."},
+      {"caseId": "MG-06", "criterion": "claim_support", "claim": "H가 받은 세 거래는 모두 현금(Cash) 방식으로 기록됐다."}
+    ]
+  },
+  {
+    "graphId": "G3",
+    "date": "2022-09-23",
+    "transactions": [
+      {"time": "14:02:00", "sender": "J", "recipient": "K", "amount": "780.00", "format": "ACH"}
+    ],
+    "claims": [
+      {"caseId": "MG-07", "criterion": "document_support", "claim": "합성 고객확인 자료는 실제 소유자와 거래 목적을 확인한다고 설명한다."},
+      {"caseId": "MG-08", "criterion": "claim_support", "claim": "J→K 송금은 급여 지급이다."},
+      {"caseId": "MG-09", "criterion": "document_support", "claim": "합성 고객확인 자료는 거래 목적을 확인할 필요가 없다고 설명한다."}
+    ]
+  }
+]

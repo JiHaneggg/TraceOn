@@ -134,10 +134,14 @@ def build(raw_dir, output=DEFAULT_INDEX, refresh=False, sources=None):
     chunks, documents = [], []
     for source in sources:
         url = urlparse(source["url"])
-        if url.scheme != "https" or url.hostname not in ALLOWED_HOSTS:
-            raise ValueError("Only curated HTTPS source hosts are allowed")
         path = raw_dir / (source["documentId"] + ".html")
-        if refresh or not path.exists():
+        fetch_needed = refresh or not path.exists()
+        if source["sourceKind"] == "synthetic_fixture":
+            if url.scheme != "https" or url.netloc != "example.invalid" or fetch_needed:
+                raise ValueError("Synthetic fixtures require an example.invalid URL and a local HTML snapshot")
+        elif url.scheme != "https" or url.hostname not in ALLOWED_HOSTS:
+            raise ValueError("Only curated HTTPS source hosts are allowed")
+        if fetch_needed:
             with urlopen(Request(source["url"], headers={"User-Agent": "TraceOn-RAG-MVP/1.0"}), timeout=25) as response:
                 if urlparse(response.url).hostname not in ALLOWED_HOSTS:
                     raise ValueError("Unexpected source redirect")

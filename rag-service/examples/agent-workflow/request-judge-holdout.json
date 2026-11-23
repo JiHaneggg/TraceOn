@@ -1,0 +1,103 @@
+{
+  "graph": {
+    "schemaVersion": "1.0",
+    "targetTxId": "DEMO-test-fan_in-2",
+    "asOf": "2022-09-15T12:02:00",
+    "windowStart": "2022-09-08T12:02:00",
+    "nodes": [
+      {
+        "accountKey": "1:DEMO-test-fan_in-A"
+      },
+      {
+        "accountKey": "1:DEMO-test-fan_in-B"
+      },
+      {
+        "accountKey": "1:DEMO-test-fan_in-C"
+      },
+      {
+        "accountKey": "1:DEMO-test-fan_in-D"
+      }
+    ],
+    "edges": [
+      {
+        "txId": "DEMO-test-fan_in-0",
+        "timestamp": "2022-09-15T12:00:00",
+        "fromAccountKey": "1:DEMO-test-fan_in-A",
+        "toAccountKey": "1:DEMO-test-fan_in-D",
+        "amountPaid": "1000.10",
+        "paymentCurrency": "US Dollar",
+        "amountReceived": "1000.10",
+        "receivingCurrency": "US Dollar",
+        "paymentFormat": "ACH"
+      },
+      {
+        "txId": "DEMO-test-fan_in-1",
+        "timestamp": "2022-09-15T12:01:00",
+        "fromAccountKey": "1:DEMO-test-fan_in-B",
+        "toAccountKey": "1:DEMO-test-fan_in-D",
+        "amountPaid": "1001.10",
+        "paymentCurrency": "US Dollar",
+        "amountReceived": "1001.10",
+        "receivingCurrency": "US Dollar",
+        "paymentFormat": "ACH"
+      },
+      {
+        "txId": "DEMO-test-fan_in-2",
+        "timestamp": "2022-09-15T12:02:00",
+        "fromAccountKey": "1:DEMO-test-fan_in-C",
+        "toAccountKey": "1:DEMO-test-fan_in-D",
+        "amountPaid": "1002.10",
+        "paymentCurrency": "US Dollar",
+        "amountReceived": "1002.10",
+        "receivingCurrency": "US Dollar",
+        "paymentFormat": "ACH"
+      }
+    ],
+    "meta": {
+      "hops": 2,
+      "maxNeighbors": 50,
+      "maxEdges": 1000,
+      "truncated": false,
+      "timeDirection": "past-only"
+    }
+  },
+  "ruleResult": {
+    "schemaVersion": "1.0",
+    "txId": "DEMO-test-fan_in-2",
+    "findings": [
+      {
+        "ruleId": "FAN_IN",
+        "score": 65,
+        "accountKey": "1:DEMO-test-fan_in-D",
+        "evidenceTxIds": [
+          "DEMO-test-fan_in-0",
+          "DEMO-test-fan_in-1",
+          "DEMO-test-fan_in-2"
+        ],
+        "facts": {
+          "counterpartyCount": 3,
+          "transactionCount": 3,
+          "totalsByCurrency": {
+            "US Dollar": "3003.30"
+          }
+        }
+      }
+    ],
+    "config": {
+      "min_counterparties": 3,
+      "window_minutes": 1440,
+      "max_cycle_hops": 4,
+      "threshold": 65,
+      "fan_in_min_counterparties": null,
+      "fan_out_min_counterparties": null
+    },
+    "limitations": {
+      "subgraphTruncated": false,
+      "sourceGraphComplete": false,
+      "cycleSearchTruncated": false
+    },
+    "ruleScore": 65,
+    "flagged": true
+  },
+  "query": "의심거래보고 합당한 근거 보고 방법 절차"
+}

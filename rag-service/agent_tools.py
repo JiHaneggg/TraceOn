@@ -4,6 +4,8 @@ from reports import generate_report
 from evidence_lookup import EvidenceRepository, resolve_fact
 from report_verification import verify_report
 from evidence_fit import assessment_response
+from agent_judge import openai_judge
+from judge_debate import openai_debate
 
 
 class AgentTools:
@@ -14,6 +16,17 @@ class AgentTools:
     def call(self, name, arguments):
         if not isinstance(arguments, dict):
             raise ValueError("Tool arguments must be an object")
+        if name == "run_review_workflow":
+            from agent_workflow import run_review_workflow
+            if set(arguments) - {"graph", "ruleResult", "query", "corpusSha256", "mode", "maxRetries", "judgeMode"}:
+                raise ValueError("Unknown workflow tool argument")
+            judge_mode = arguments.get("judgeMode", "off")
+            if judge_mode not in ("off", "openai", "debate"):
+                raise ValueError("judgeMode must be off, openai or debate")
+            return run_review_workflow(self.call, arguments["graph"], arguments["ruleResult"],
+                                       arguments.get("query"), arguments.get("corpusSha256"),
+                                       arguments.get("mode", "template"), arguments.get("maxRetries", 0),
+                                       judge={"off": None, "openai": openai_judge, "debate": openai_debate}[judge_mode])
         if name == "get_citation":
             if set(arguments) - {"chunkId", "corpusSha256"}:
                 raise ValueError("Unknown citation tool argument")
