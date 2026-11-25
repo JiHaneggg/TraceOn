@@ -1,5 +1,5 @@
 # TraceOn 로컬 개발 환경
-#   전체 실행:        docker compose up -d --build
+#   전체 실행:        docker compose up -d --build   (neo4j + rule + rag + backend)
 #   Neo4j만 실행:     docker compose up -d neo4j   (백엔드는 IntelliJ / gradlew bootRun으로 실행할 때)
 # 실행 전 .env.example을 .env로 복사하고 NEO4J_PASSWORD를 설정해야 한다.
 
@@ -31,20 +31,40 @@ services:
       retries: 12
       start_period: 30s
 
+  # 룰 점수 서비스. 공통 Graph JSON만 받으며 DB 자격증명이 없다.
+  rule:
+    build: ./rule-service
+    read_only: true
+    tmpfs:
+      - /tmp
+
+  # RAG 근거·초안 서비스. 사전에 만든 로컬 색인(data/rag)을 읽기 전용으로 사용한다.
+  # 색인이 없으면 시작하지 않는다 → docs/team-handoff.md의 "RAG API 실행" 1회 준비 필요.
+  rag:
+    build: ./rag-service
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      # 비어 있으면 template 모드(LLM 호출 없음). 키는 .env에만 두고 Git에 올리지 않는다.
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+    volumes:
+      - ./data/rag:/app/data/rag:ro
+
   backend:
     build: ./backend
     ports:
       - "127.0.0.1:${SERVER_PORT:-8080}:8080"
     environment:
-      # 컨테이너 안에서는 서비스 이름(neo4j)으로 접속한다.
+      # 컨테이너 안에서는 서비스 이름으로 접속한다.
       NEO4J_URI: bolt://neo4j:7687
       NEO4J_HTTP_URL: http://neo4j:7474
       SERVER_ADDRESS: 0.0.0.0
       TRACEON_MANIFEST: /app/demo/manifest.json
       TRACEON_HISTORY_DB: /app/history/spring-analysis.sqlite3
-      # 컨테이너에서 접근 가능한 룰/RAG 주소를 별도로 준비한다.
-      RULE_URL: ${DOCKER_RULE_URL:-http://host.docker.internal:8091/v1/rules/score}
-      RAG_URL: ${DOCKER_RAG_URL:-http://host.docker.internal:8092}
+      RULE_URL: http://rule:8091/v1/rules/score
+      RAG_URL: http://rag:8092
       NEO4J_USER: ${NEO4J_USER:-neo4j}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
       NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
@@ -54,6 +74,12 @@ services:
     depends_on:
       neo4j:
         condition: service_healthy
+      rule:
+        condition: service_healthy
+      # RAG는 초안 기능에만 필요하다. 꺼져 있어도 그래프·저장본 열기는 동작한다(초안 API만 503).
+      rag:
+        condition: service_started
+        required: false
 
 volumes:
   neo4j_data:
