@@ -1,0 +1,22 @@
+{
+  "version": "gate-v1",
+  "riskCut": 0.4869,
+  "signalHints": [
+    "CYCLE_PATH",
+    "PASS_THROUGH",
+    "RAPID_BURST",
+    "REPEATED_AMOUNTS",
+    "JUST_BELOW_THRESHOLD"
+  ],
+  "tuning": {
+    "date": "2026-11-25",
+    "split": "V2 validation",
+    "riskScores": "out-of-fold",
+    "objective": "max false-positive reduction with gate recall loss <= 2% (system budget 5%)",
+    "v2ManifestSha256": "48a9978fd6061e072d06eae4c20d74cfede4d77d85f2a5bb4bc32f7dc5ccd174",
+    "validation": {
+      "recallLoss": 0.0109,
+      "falsePositiveReduction": 0.1545
+    }
+  }
+}

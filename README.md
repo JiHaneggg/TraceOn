@@ -36,6 +36,8 @@
 
 DB·룰의 첫 구현과 실행 순서: [DB·룰 MVP 가이드](docs/db-rule-mvp.md).
 
+에이전트 조사 계층(PPT 구조, LangGraph): [실행·노드 안내](agent-service/README.md), [결정·검증 기록](docs/agent-investigation.md).
+
 확장한 시간순 500건 평가: [V2 실행 방법](docs/evaluation-v2.md), [실측 결과와 한계](docs/db-rule-v2.md).
 
 - **Neo4j 접근과 Subgraph 추출은 백엔드(Spring Boot)만 담당**합니다. 세 방식이 항상 같은 Subgraph를 입력으로 받도록 하기 위함입니다.
@@ -47,6 +49,7 @@ DB·룰의 첫 구현과 실행 순서: [DB·룰 MVP 가이드](docs/db-rule-mvp
 ```text
 TraceOn/
 ├── backend/             # Spring Boot (Java 21) - Graph, Hybrid, Experiment API
+├── agent-service/       # PPT 에이전트 조사 계층 (LangGraph, 에이전트 담당)
 ├── data-pipeline/       # 원천 데이터 → 팀 공통 데이터 전처리 (Python)
 ├── ml-service/          # ML 점수 산출 서비스 (ML 담당)
 ├── rag-service/         # 공식 문서 검색·거래 근거 검증·Agent 도구 (RAG 담당)

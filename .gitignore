@@ -60,6 +60,7 @@ neo4j-import/
 .tools/
 data/demo/
 data/evaluation/
+data/embeddings/
 artifacts/
 data/rag/
 data/history/
