@@ -10,13 +10,17 @@ PPT Slide 8 2x2, with the team's rule+ML risk score in the similarity slot
 
 Safety rules: an alert the trigger rule did not flag is closed as "not an alert";
 without a risk score the gate never closes (facts -> investigate, none ->
-human_review); a route that needs an LLM call goes to human_review when the LLM
-budget is used up. Every closure records the fact IDs that were checked.
+human review as evidence_insufficient); a route that needs an LLM call goes to
+human review as budget_exceeded when the LLM calls or the alert's time budget are
+used up. Every closure records the fact IDs that were checked.
 """
 from __future__ import annotations
 
 import json
 from pathlib import Path
+import time
+
+from investigation_state import hold
 
 NODE = "evidence_check"
 CONFIG_PATH = Path(__file__).with_name("gate_config.json")
@@ -37,7 +41,11 @@ def load_gate_config(path=CONFIG_PATH):
     return config
 
 
-def decide(context, profile, budget, config):
+HOLD_REASONS = {"risk_unavailable_without_facts": "evidence_insufficient",
+                "llm_budget_exhausted": "budget_exceeded", "deadline_exceeded": "budget_exceeded"}
+
+
+def decide(context, profile, budget, config, now=None):
     """Pure routing decision; returns (route, reasonCode, details)."""
     signals = [hint for hint in profile["hints"] if hint["kind"] in config["signalHints"]]
     risk = profile["riskScore"]
@@ -57,6 +65,8 @@ def decide(context, profile, budget, config):
                          (False, False): ("close", "low_risk_without_facts")}[(high, bool(signals))]
     if route in LLM_ROUTES and budget["llmCalls"] >= budget["maxLlmCalls"]:
         return "human_review", "llm_budget_exhausted", details
+    if route in LLM_ROUTES and (time.time() if now is None else now) >= budget["deadlineAt"]:
+        return "human_review", "deadline_exceeded", details
     return route, reason, details
 
 
@@ -69,7 +79,10 @@ def make_evidence_check(config=None):
             details["closureBasisFactIds"] = [row["factId"] for row in state["evidence"]
                                               if row["source"] == "basic_profile"
                                               and row["factId"].endswith(SIGNAL_FACT_SUFFIXES)]
-        update = {"route": route, "gate": {"configVersion": config["version"], "reasonCode": reason, **details},
+        gate = {"configVersion": config["version"], "reasonCode": reason, **details}
+        if route == "human_review":
+            return {**hold(NODE, HOLD_REASONS[reason], reason), "gate": gate}
+        update = {"route": route, "gate": gate,
                   "trace": [{"node": NODE, "outcome": route, "reasonCode": reason, "llmCalls": 0}]}
         if route == "close":
             update.update(status="closed", reasonCodes=[reason])

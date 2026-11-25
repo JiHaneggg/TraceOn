@@ -54,7 +54,8 @@ def evaluate_cut(rows, cut):
     quadrants = {}
     for row in rows:
         profile = {**row["profile"], "riskScore": {"status": "computed", "score": row["risk"]}}
-        route, reason, _ = decide(row["context"], profile, row["budget"], config)
+        # The per-alert time budget does not apply to offline tuning.
+        route, reason, _ = decide(row["context"], profile, row["budget"], config, now=float("-inf"))
         label = "positive" if row["case"]["expectedLabel"] else "negative"
         weight = row["case"]["samplingWeight"]
         totals[label] += weight

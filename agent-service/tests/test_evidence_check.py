@@ -74,7 +74,8 @@ class GateSafetyTests(unittest.TestCase):
         self.assertEqual(with_facts["route"], "investigate")
         self.assertEqual((without_facts["route"], without_facts["gate"]["reasonCode"]),
                          ("human_review", "risk_unavailable_without_facts"))
-        self.assertNotIn("status", without_facts)
+        self.assertEqual((without_facts["status"], without_facts["hold"]["category"]),
+                         ("held", "evidence_insufficient"))
 
     def test_alert_not_flagged_by_trigger_is_closed_as_not_an_alert(self):
         state = profiled_state("fan_in_mule", 0.9)
@@ -85,6 +86,17 @@ class GateSafetyTests(unittest.TestCase):
     def test_llm_routes_fall_back_to_human_review_when_llm_budget_is_zero(self):
         update = gate(profiled_state("fan_in_mule", 0.8, budget={"maxLlmCalls": 0}))
         self.assertEqual((update["route"], update["gate"]["reasonCode"]), ("human_review", "llm_budget_exhausted"))
+        self.assertEqual((update["status"], update["hold"]["category"]), ("held", "budget_exceeded"))
+
+    def test_llm_routes_fall_back_to_human_review_after_the_time_budget(self):
+        state = profiled_state("fan_in_mule", 0.8)
+        route, reason, _ = decide(state["alertContext"], state["profile"], state["budget"], CONFIG,
+                                  now=state["budget"]["deadlineAt"])
+        self.assertEqual((route, reason), ("human_review", "deadline_exceeded"))
+        closing_state = profiled_state("normal_merchant", 0.2)
+        late = decide(closing_state["alertContext"], closing_state["profile"], closing_state["budget"], CONFIG,
+                      now=closing_state["budget"]["deadlineAt"] + 10)
+        self.assertEqual(late[0], "close")  # closing needs no LLM call, so it still closes
 
     def test_cut_is_inclusive_on_the_high_side(self):
         context = {"flagged": True}
