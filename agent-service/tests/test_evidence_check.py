@@ -68,6 +68,13 @@ class GateBranchTests(unittest.TestCase):
 
 
 class GateSafetyTests(unittest.TestCase):
+    def test_truncated_graph_stays_in_human_review(self):
+        state = profiled_state("normal_merchant", 0.2)
+        state["alertContext"]["scope"]["subgraphTruncated"] = True
+        update = gate(state)
+        self.assertEqual((update["status"], update["hold"]["reasonCode"]),
+                         ("held", "truncated_graph_without_confirmation"))
+
     def test_missing_risk_never_closes(self):
         with_facts = gate(profiled_state("fan_in_mule", None))
         without_facts = gate(profiled_state("normal_merchant", None))
