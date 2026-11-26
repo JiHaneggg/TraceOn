@@ -88,6 +88,17 @@ class InvestigationGraphTests(unittest.TestCase):
         self.assertFalse(result["readyForSubmission"])
         self.assertEqual(tool_calls, ["build_evidence_context", "generate_review_report", "verify_review_report"])
 
+    def test_typology_checks_the_rule_evidence_id_and_closed_cycle_focus(self):
+        from investigation_steps import check_typology_choice
+        from llm_client import LLMOutputError
+        observed = {"alert.F1.ruleId": "fan_in", "alert.F2.ruleId": "cycle"}
+        with self.assertRaises(LLMOutputError):
+            check_typology_choice({"choice": "cycle", "factIds": ["alert.F1.ruleId"]}, observed, "cycle")
+        with self.assertRaises(LLMOutputError):
+            check_typology_choice({"choice": "fan_in", "factIds": ["alert.F1.ruleId"]}, observed, "cycle")
+        check_typology_choice({"choice": "cycle", "factIds": ["alert.F2.ruleId"]}, observed, "cycle")
+        check_typology_choice({"choice": "uncertain", "factIds": []}, observed, "cycle")
+
 
 if __name__ == "__main__":
     unittest.main()
