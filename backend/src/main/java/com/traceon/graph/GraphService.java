@@ -24,6 +24,7 @@ public class GraphService {
             .thenComparing(e->str(e,"txId"));
     private final GraphDatabase database; private final BoundedHttp http; private final URI ruleUrl;
     private final List<String> targets; private final Clock clock;
+    private DemoScores demoScores = DemoScores.EMPTY;
     private final Semaphore gate=new Semaphore(2);
     private final Object monitor=new Object();
     private final LinkedHashMap<String,Snapshot> snapshots=new LinkedHashMap<>();
@@ -36,8 +37,10 @@ public class GraphService {
     }
     @org.springframework.beans.factory.annotation.Autowired
     public GraphService(GraphDatabase database,BoundedHttp http,@Value("${traceon.rule-url}") String ruleUrl,
-            @Value("${traceon.manifest}") String manifest) throws IOException {
+            @Value("${traceon.manifest}") String manifest,
+            @Value("${traceon.score-file:}") String scoreFile) throws IOException {
         this(database,http,URI.create(ruleUrl),readTargets(Path.of(manifest)),Clock.systemUTC());
+        demoScores = DemoScores.load(scoreFile);
     }
     GraphService(GraphDatabase database,BoundedHttp http,URI ruleUrl,List<String> targets,Clock clock) {
         this.database=database;this.http=http;this.ruleUrl=ruleUrl;this.targets=List.copyOf(targets);this.clock=clock;
@@ -130,13 +133,16 @@ public class GraphService {
             paid.merge(str(e,"paymentCurrency"),new BigDecimal(str(e,"amountPaid")),BigDecimal::add);
             received.merge(str(e,"receivingCurrency"),new BigDecimal(str(e,"amountReceived")),BigDecimal::add);
         }
-        return obj("schemaVersion","1.0","graph",graph,"target",byId.get(str(graph,"targetTxId")),"ruleResult",rules,
+        var result = obj("schemaVersion","1.0","graph",graph,"target",byId.get(str(graph,"targetTxId")),"ruleResult",rules,
                 "highlightTxIds",new ArrayList<>(highlights),"summary",obj("accounts",((List<?>)graph.get("nodes")).size(),
                         "transactions",edges.size(),"evidenceTransactions",highlights.size(),"patterns",rows(rules.get("findings")).size(),
                         "grossPaid",decimalStrings(paid),"grossReceived",decimalStrings(received)),
                 "source",obj("kind","neo4j","queriedAt",clock.instant().toString(),"scope","selected_demo_subset",
                         "sourceGraphComplete",false,"readOnly",true,"ruleScoreIsProbability",false),
                 "notice","시연용 부분 데이터의 관찰입니다. 룰 점수는 확률이 아니며 범죄·정상 거래를 확정하지 않습니다.");
+        var hybrid = demoScores.forGraph(graph);
+        if (hybrid != null) result.put("hybridScore", hybrid);
+        return result;
     }
     private static Map<String,String> decimalStrings(Map<String,BigDecimal> values) {
         var out=new TreeMap<String,String>();values.forEach((k,v)->out.put(k,v.toPlainString()));return out;

@@ -23,7 +23,7 @@ public class HistoryService {
         var capture=obj("payload",payload,"review",null,"citations",obj(),"componentSha256",components());
         if(reviewId!=null) {
             long deadline=System.nanoTime()+Duration.ofSeconds(30).toNanos();
-            var record=reviews.record(reviewId);
+            var record=reviews.recordForSave(reviewId);
             if(!snapshotId.equals(record.get("snapshotId")))throw new ApiException(409,"history_review_mismatch","같은 그래프의 초안만 저장할 수 있습니다.");
             var checked=reviews.verify(reviewId);
             if(!Boolean.TRUE.equals(child(checked,"verification").get("valid")))throw new ApiException(409,"review_not_verified","초안 검사에 실패해 저장하지 않았습니다.");
@@ -37,12 +37,16 @@ public class HistoryService {
             checkDeadline(deadline);
         }
         validate(capture);
-        var saved=graphs.ifCurrent(snapshotId,()->{if(reviewId!=null)reviews.record(reviewId);return store.put(capture);});
+        var saved=graphs.ifCurrent(snapshotId,()->{
+            if(reviewId==null)return store.put(capture);
+            reviews.record(reviewId);
+            return reviews.ifStableForSave(reviewId,child(capture,"review").get("judge"),()->store.put(capture));
+        });
         return obj("schemaVersion","1.0","history",metadata(saved),"created",saved.created());
     }
     private static void checkDeadline(long deadline){if(System.nanoTime()>=deadline)throw new ApiException(503,"history_capture_timeout","원문 수집 시간이 초과됐습니다. 저장본은 생성하지 않았습니다.");}
     private static Map<String,Object> components() {
-        var out=obj();for(Class<?> type:List.of(GraphService.class,ReviewService.class,HistoryService.class,HistoryStore.class)){
+        var out=obj();for(Class<?> type:List.of(GraphService.class,ReviewService.class,HistoryService.class,HistoryStore.class,JudgeResult.class)){
             try(var stream=type.getResourceAsStream("/"+type.getName().replace('.','/')+".class")){out.put(type.getSimpleName(),sha(Objects.requireNonNull(stream).readAllBytes()));}
             catch(java.io.IOException ex){throw ApiException.unavailable();}
         }return out;
@@ -65,6 +69,7 @@ public class HistoryService {
                 && context.get("corpusSha256").equals(report.get("corpusSha256")) && graph.get("targetTxId").equals(context.get("targetTxId"))
                 && payload.get("ruleResult").equals(context.get("ruleResult")) && Boolean.TRUE.equals(report.get("humanReviewRequired"))
                 && obj("method","deterministic_template","llmCalled",false).equals(report.get("generation")));
+        if(review.get("judge")!=null)JudgeResult.validate(child(review,"judge"),graph,child(payload,"ruleResult"),context,report);
         Set<String> chunkIds=new HashSet<>();
         for(var row:rows(report.get("citations"))) {
             String chunkId=str(row,"chunkId");check(chunkIds.add(chunkId));var resolved=child(citations,chunkId);

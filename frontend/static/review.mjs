@@ -2,6 +2,7 @@ import {amountText,ruleName,timeText} from './format.mjs';
 import {CHECK_LABELS,RequestEpoch,factLabel,factValue,focusedFacts,groupedCitations,safeSourceUrl,sourceSegments,verificationState} from './review-format.mjs';
 import {isFixture} from './runtime.mjs';
 import {assertReviewResult} from './contract.mjs';
+import {acceptJudge,JUDGE_LABELS} from './judge-format.mjs';
 
 const $=id=>document.getElementById(id);
 function el(tag,cls,text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=String(text);return node;}
@@ -17,6 +18,7 @@ export class ReviewPanel{
     $('review-refresh-source').addEventListener('click',async()=>{if(this.pending)return;await onReload();$('review-card').scrollIntoView({behavior:'smooth',block:'start'});});
     $('review-prepare').addEventListener('click',()=>this.prepare());
     $('review-verify').addEventListener('click',()=>this.verify());
+    $('review-judge').addEventListener('click',()=>this.judge());
     $('review-download-md').addEventListener('click',()=>this.download('markdown'));
     $('review-download-json').addEventListener('click',()=>this.download('json'));
     $('review-all-facts').addEventListener('change',()=>this.renderFacts());
@@ -29,7 +31,7 @@ export class ReviewPanel{
   setContext(payload,finding){
     const index=finding?payload?.ruleResult.findings.indexOf(finding):null,key=payload?`${payload.reviewSnapshotId}:${index}`:null;
     if(key===this.key&&payload)return;
-    this.key=key;this.payload=payload;this.findingIndex=index;this.result=null;this.archive=null;this.archiveInvalid=false;this.pending=false;this.epoch.reset();this.controller?.abort();this.dialogEpoch.reset();this.dialogController?.abort();
+    this.key=key;this.payload=payload;this.findingIndex=index;this.result=null;this.archive=null;this.archiveInvalid=false;this.pending=false;this.pendingJudge=false;this.epoch.reset();this.controller?.abort();this.dialogEpoch.reset();this.dialogController?.abort();
     if($('review-evidence-dialog').open)$('review-evidence-dialog').close();
     $('review-content').hidden=true;$('review-error').hidden=true;$('review-refresh-source').hidden=true;$('review-empty').hidden=false;$('review-state').textContent='근거 확인 대기';$('review-state').className='review-state';
     $('review-focus').textContent=payload?`${payload.graph.targetTxId} · ${finding?ruleName(finding.ruleId):'대상 거래 · 현재 룰 탐지 없음'}`:'거래를 선택해 주세요.';
@@ -42,7 +44,40 @@ export class ReviewPanel{
     if(result){this.elapsed=0;this.render();this.tab('draft');}else{$('review-focus').textContent='저장 당시 결과 · 그래프·룰만 저장됨';$('review-empty').textContent='이 저장본에는 RAG 초안이 없습니다. 현재 자료로 새 분석을 시작하면 준비할 수 있습니다.';}
     $('review-prepare').disabled=true;$('review-prepare').textContent='저장본 읽기 전용';this.onChange();
   }
-  downloadState(enabled){for(const id of ['review-download-md','review-download-json'])$(id).disabled=!enabled||this.archiveInvalid;$('review-verify').disabled=!this.result||this.pending;$('review-verify').textContent=this.archive?'저장본 내용 검사':'초안 재검사';}
+  downloadState(enabled){for(const id of ['review-download-md','review-download-json'])$(id).disabled=!enabled||this.archiveInvalid;$('review-verify').disabled=!this.result||this.pending;$('review-verify').textContent=this.archive?'저장본 내용 검사':'초안 재검사';this.renderJudge();}
+  renderJudge(){
+    const control=$('review-judge'),panel=$('review-judge-result'),judge=this.result?.judge;
+    control.hidden=isFixture()||!!this.archive||!this.result?.judgeState;
+    control.disabled=this.pending||!!judge||!this.result?.verification?.valid;
+    control.textContent=this.pendingJudge?'Judge 판정 중…':'보고서 Judge 실행';
+    panel.replaceChildren();panel.hidden=!judge;
+    if(!judge)return;
+    panel.append(el('h4','',`${this.archive?'저장 당시 Judge · ':''}${JUDGE_LABELS[judge.decisionStatus]||'판정 확인 필요'}`));
+    if(judge.verificationScore!=null)panel.append(el('p','',`초안 검증 점수 ${judge.verificationScore}점`));
+    if(judge.decisionStatus==='not_judged')panel.append(el('p','review-warning','새 초안을 준비한 뒤 다시 판정할 수 있습니다.'));
+    if(Array.isArray(judge.items)&&judge.items.length){
+      const list=el('ul');
+      for(const item of judge.items)list.append(el('li','',`${item.itemId} · ${item.reason}`));
+      panel.append(list);
+    }
+  }
+  async judge(){
+    const current=this.result;
+    if(this.pending||this.archive||!current?.judgeState||current.judge||!current.verification.valid)return;
+    const epoch=this.epoch.value;this.pending=true;this.pendingJudge=true;$('review-prepare').disabled=true;$('review-error').hidden=true;
+    this.downloadState(false);this.onChange();
+    try{
+      const response=await request('/api/review/judge',{reviewId:current.reviewId},this.controller?.signal);
+      if(this.epoch.current(epoch))this.result=acceptJudge(current,response);
+    }catch(error){
+      if(this.epoch.current(epoch)&&error.name!=='AbortError')this.error(error.message,error.code);
+    }finally{
+      if(this.epoch.current(epoch)){
+        this.pending=false;this.pendingJudge=false;$('review-prepare').disabled=false;
+        this.downloadState(verificationState(this.result).downloadAllowed);this.onChange();
+      }
+    }
+  }
   async prepare(){
     if(!this.payload?.reviewSnapshotId||this.pending)return;
     const epoch=this.epoch.value;this.pending=true;this.controller?.abort();this.controller=new AbortController();

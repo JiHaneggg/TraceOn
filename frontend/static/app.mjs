@@ -52,6 +52,7 @@ function resetDetails(){
   $('identity-check').hidden=true;
   for(const id of ['rule-score','account-count','transaction-count','pattern-count','table-count','findings-count'])$(id).textContent='—';
   $('score-fill').style.width='0%';$('score-state').textContent='조회 중';$('hop-caption').textContent='선택한 범위의 응답을 확인합니다';
+  $('hybrid-score').hidden=true;
   $('evidence-caption').textContent='룰 근거 확인 중';$('graph-scope').textContent='조회 중';$('visible-count').textContent='—';$('table-range').textContent='—';
   $('inspector').replaceChildren(element('div','empty-note','원본 거래 정보를 확인하고 있습니다…'));
   $('transactions-body').replaceChildren();$('findings-list').replaceChildren();$('export').disabled=true;
@@ -150,6 +151,10 @@ async function openHistory(id){
 function renderMetrics(){
   const p=state.payload;$('rule-score').textContent=p.ruleResult.ruleScore;$('score-fill').style.width=`${Math.max(0,Math.min(100,p.ruleResult.ruleScore))}%`;
   $('score-state').textContent=p.ruleResult.findings.length?'검토 필요':'탐지 없음';$('account-count').textContent=p.summary.accounts;
+  const hybrid=p.hybridScore, hybridLabel=$('hybrid-score');
+  hybridLabel.hidden=hybrid?.targetTxId!==p.graph.targetTxId||hybrid.asOf!==p.graph.asOf
+    ||!Number.isFinite(hybrid.score)||hybrid.score<0||hybrid.score>1;
+  hybridLabel.textContent=hybridLabel.hidden?'':`룰+ML 우선순위 ${hybrid.score.toFixed(3)} / 1`;
   $('transaction-count').textContent=p.summary.transactions;$('pattern-count').textContent=p.summary.patterns;
   $('hop-caption').textContent=`이전 ${$('days').value}일 · 최대 ${p.graph.meta.hops}홉`;
   $('evidence-caption').textContent=p.highlightTxIds.length?`근거 거래 ${p.highlightTxIds.length}건 · 추가 확인 필요`:'현재 조건의 탐지 없음 · 정상 확정 아님';

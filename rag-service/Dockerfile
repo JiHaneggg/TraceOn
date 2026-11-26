@@ -5,6 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 RUN useradd --system --uid 10001 traceon
 COPY --chown=traceon . ./rag-service
+COPY --from=rule_sources --chown=traceon /rules.py ./rule-service/rules.py
 USER traceon
 EXPOSE 8092
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=6 \

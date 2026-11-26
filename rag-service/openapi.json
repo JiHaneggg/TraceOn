@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "TraceOn RAG API",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "description": "Grounded local retrieval, explicit scope checks and review report generation. Template mode is offline; explicitly configured OpenAI mode selects verified IDs only."
   },
   "servers": [
@@ -11,6 +11,48 @@
     }
   ],
   "paths": {
+    "/v1/rag/reports/judge": {
+      "post": {
+        "operationId": "judge_verified_report",
+        "description": "Reverify the exact backend report, then call the existing single Agent Judge once. No regeneration, caller model, key, URL or retry settings. Credentials are process-local environment variables. Model failures are not_judged, distinct from insufficient_evidence holds.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["graph", "ruleResult", "report"],
+                "properties": {
+                  "graph": {"type": "object", "description": "The same backend Graph JSON 1.0"},
+                  "ruleResult": {"type": "object", "description": "The original complete rule result"},
+                  "report": {"type": "object", "description": "The exact prepared report, including reportId and pinned corpusSha256"}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A validated semantic judgment, an evidence hold or an explicitly unscored operational failure",
+            "content": {"application/json": {"schema": {
+              "type": "object", "required": ["schemaVersion", "verification", "judge"],
+              "properties": {
+                "schemaVersion": {"const": "1.0"},
+                "verification": {"$ref": "#/components/schemas/CompleteReportVerification"},
+                "judge": {"$ref": "#/components/schemas/JudgeAssessment"}
+              }
+            }}}
+          },
+          "400": {"description": "Invalid or duplicate fields; caller keys/models are rejected"},
+          "403": {"description": "Cross-origin request"},
+          "409": {"description": "Code verification or original snapshot check did not pass; model not called"},
+          "413": {"description": "Request exceeds 2MB"},
+          "421": {"description": "Unexpected local host"},
+          "429": {"description": "Another Judge request is running"}
+        }
+      }
+    },
     "/health": {
       "get": {
         "responses": {
@@ -531,6 +573,28 @@
   },
   "components": {
     "schemas": {
+      "JudgeAssessment": {
+        "type": "object",
+        "required": ["schemaVersion", "assessmentId", "evaluatedAt", "identity", "status", "decisionStatus", "evaluationCompleted", "outcomeCategory", "reasonCode", "verificationScore", "items", "factIds", "chunkIds", "evidenceTxIds", "humanReviewRequired", "readyForSubmission"],
+        "properties": {
+          "schemaVersion": {"const": "1.0"},
+          "assessmentId": {"type": "string", "pattern": "^J-[0-9a-f]{24}$"},
+          "evaluatedAt": {"type": "string", "format": "date-time"},
+          "identity": {"type": "object", "description": "Pinned graph/rule/report hashes, targetTxId, reportId, context/version and corpusSha256"},
+          "status": {"enum": ["passed", "held", "rejected"], "description": "Legacy Agent Judge branch; use decisionStatus for display"},
+          "decisionStatus": {"enum": ["passed", "held", "rejected", "not_judged"]},
+          "evaluationCompleted": {"type": "boolean"},
+          "outcomeCategory": {"enum": ["semantic_decision", "insufficient_evidence", "configuration", "provider_error", "transport", "model_response", "input_limit"]},
+          "reasonCode": {"type": "string"},
+          "verificationScore": {"type": ["integer", "null"], "enum": [0, 50, 100, null]},
+          "items": {"type": "array", "items": {"type": "object", "description": "Original itemId, criterion, verdict, reason, score, allowed factIds/chunkIds and derived evidenceTxIds"}},
+          "factIds": {"type": "array", "items": {"type": "string"}},
+          "chunkIds": {"type": "array", "items": {"type": "string"}},
+          "evidenceTxIds": {"type": "array", "items": {"type": "string"}},
+          "humanReviewRequired": {"const": true},
+          "readyForSubmission": {"const": false}
+        }
+      },
       "ContextRequest": {
         "type": "object",
         "additionalProperties": false,

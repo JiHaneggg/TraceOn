@@ -32,4 +32,9 @@ class GraphControllerTests {
     @Test void successfulResponseUsesNoStoreHeaders() throws Exception {
         when(graphs.cases()).thenReturn(obj("items",java.util.List.of()));mvc.perform(get("/api/cases").header("Host","localhost:80"))
                 .andExpect(status().isOk()).andExpect(header().string("Cache-Control","no-store")).andExpect(header().string("X-Content-Type-Options","nosniff"));}
+    @Test void judgeOnlyAcceptsServerOwnedReviewId() throws Exception {
+        mvc.perform(post("/api/review/judge").header("Host","localhost:80").contentType("application/json").content("{\"reviewId\":\"R\",\"apiKey\":\"not-accepted\"}"))
+                .andExpect(status().isBadRequest());verifyNoInteractions(reviews);}
+    @Test void judgeStatusRequiresExactlyOneReviewId() throws Exception {
+        mvc.perform(get("/api/review/judge").header("Host","localhost:80").param("reviewId","A","B")).andExpect(status().isBadRequest());verifyNoInteractions(reviews);}
 }

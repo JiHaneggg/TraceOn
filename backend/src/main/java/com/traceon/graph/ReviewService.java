@@ -15,8 +15,12 @@ import org.springframework.stereotype.Service;
 public class ReviewService {
     private final GraphService graphs;private final BoundedHttp http;private final String base;
     private final Semaphore gate=new Semaphore(2);
+    private final Semaphore judgeGate=new Semaphore(1);
     private final LinkedHashMap<String,Entry> reviews=new LinkedHashMap<>();
-    private record Entry(Instant expires,Map<String,Object> value) {}
+    private static final class Entry {
+        final Instant expires;final Map<String,Object> value;boolean judging;
+        Entry(Instant expires,Map<String,Object> value){this.expires=expires;this.value=value;}
+    }
     public ReviewService(GraphService graphs,BoundedHttp http,@Value("${traceon.rag-url}") String base) {
         this.graphs=graphs;this.http=http;this.base=base.replaceAll("/$","");
     }
@@ -56,7 +60,7 @@ public class ReviewService {
                     "graphSha256",hash(graph),"reportScope","complete_queried_graph","llmCalled",false);
             var record=obj("snapshotId",snapshotId,"focus",focus,"source",source,"inputs",inputs,"result",result);
             String id=graphs.ifCurrent(snapshotId,()->remember(record));
-            var response=obj("reviewId",id,"snapshotId",snapshotId,"focus",focus,"source",source);response.putAll(result);return response;
+            var response=obj("reviewId",id,"snapshotId",snapshotId,"focus",focus,"source",source,"judge",null,"judgeState","not_requested");response.putAll(result);return response;
         });
     }
     private synchronized String remember(Map<String,Object> record) {
@@ -68,6 +72,60 @@ public class ReviewService {
         Map<String,Object> record;
         synchronized(this){var entry=reviews.get(id);if(entry==null || !Instant.now().isBefore(entry.expires))throw ApiException.stale();record=copy(entry.value);}
         graphs.current(str(record,"snapshotId"));return record;
+    }
+    private Entry entry(String id) {
+        var entry=reviews.get(id);if(entry==null || !Instant.now().isBefore(entry.expires))throw ApiException.stale();return entry;
+    }
+    public Map<String,Object> recordForSave(String id) {
+        var record=record(id);
+        synchronized(this){if(entry(id).judging)throw new ApiException(409,"judge_in_progress","Judge 판정이 끝난 뒤 초안과 함께 저장해 주세요.");}
+        return record;
+    }
+    public <T>T ifStableForSave(String id,Object expectedJudge,Supplier<T> action) {
+        // Called inside graphs.ifCurrent: snapshot replacement and commit cannot interleave.
+        synchronized(this){var entry=entry(id);
+            if(entry.judging || !Objects.equals(expectedJudge,child(entry.value,"result").get("judge")))
+                throw new ApiException(409,"judge_changed","저장 중 Judge 상태가 바뀌었습니다. 판정을 확인한 뒤 다시 저장해 주세요.");
+            return action.get();}
+    }
+    public Map<String,Object> judgeStatus(String id) {
+        var record=record(id);
+        return graphs.ifCurrent(str(record,"snapshotId"),()->{synchronized(this){var entry=entry(id);return judgeEnvelope(id,entry,false);}});
+    }
+    private static Map<String,Object> judgeEnvelope(String id,Entry entry,boolean cached) {
+        Object result=child(entry.value,"result").get("judge");
+        return obj("schemaVersion","1.0","reviewId",id,"snapshotId",entry.value.get("snapshotId"),
+                "judgeState",entry.judging?"running":result==null?"not_requested":"finished","judge",result==null?null:copy(map(result)),"cached",cached);
+    }
+    public Map<String,Object> judge(String id) {
+        var record=record(id);String snapshotId=str(record,"snapshotId");
+        Map<String,Object> cached=graphs.ifCurrent(snapshotId,()->{synchronized(this){var entry=entry(id);
+            return child(entry.value,"result").get("judge")==null?null:judgeEnvelope(id,entry,true);}});
+        if(cached!=null)return cached;
+        if(!judgeGate.tryAcquire())throw new ApiException(429,"judge_busy","Judge 판정 중입니다. 잠시 후 다시 시도해 주세요.");
+        Entry claimed=null;
+        try {
+            cached=graphs.ifCurrent(snapshotId,()->{synchronized(this){var entry=entry(id);
+                return child(entry.value,"result").get("judge")==null?null:judgeEnvelope(id,entry,true);}});
+            if(cached!=null)return cached;
+            claimed=graphs.ifCurrent(snapshotId,()->{synchronized(this){var entry=entry(id);
+                if(entry.judging)throw new ApiException(429,"judge_busy","같은 초안을 판정 중입니다.");
+                entry.judging=true;return entry;}});
+            var verified=verify(id);
+            if(!Boolean.TRUE.equals(child(verified,"verification").get("valid")))throw new ApiException(409,"review_not_verified","수치·인용 검증을 통과한 초안만 Judge에 보낼 수 있습니다.");
+            var request=copy(child(record,"inputs"));request.put("report",child(child(record,"result"),"report"));
+            Map<String,Object> judge;
+            try {
+                var response=http.call(URI.create(base+"/v1/rag/reports/judge"),request,null,2_000_000,Duration.ofSeconds(75));
+                checkVerification(child(response,"verification"),child(child(record,"result"),"report"));
+                require(Boolean.TRUE.equals(child(response,"verification").get("valid")));judge=child(response,"judge");
+            }catch(ApiException ex){if(ex.status!=503)throw ex;judge=JudgeResult.transportFailure(record);}
+            var inputs=child(record,"inputs");var result=child(record,"result");
+            JudgeResult.validate(judge,child(inputs,"graph"),child(inputs,"ruleResult"),child(result,"context"),child(result,"report"));
+            var accepted=copy(judge);Entry original=claimed;
+            return graphs.ifCurrent(snapshotId,()->{synchronized(this){var entry=entry(id);if(entry!=original)throw ApiException.stale();
+                child(entry.value,"result").put("judge",accepted);entry.judging=false;return judgeEnvelope(id,entry,false);}});
+        }finally{if(claimed!=null)synchronized(this){claimed.judging=false;}judgeGate.release();}
     }
     public static void checkVerification(Map<String,Object> verification,Map<String,Object> report) {
         require(verification.get("valid") instanceof Boolean && report.get("contextId").equals(verification.get("contextId"))
@@ -117,9 +175,10 @@ public class ReviewService {
         });
     }
     public Map<String,Object> download(String id) {
-        var record=record(id);var checked=verify(id);
+        var record=recordForSave(id);var checked=verify(id);
         if(!Boolean.TRUE.equals(child(checked,"verification").get("valid")))throw new ApiException(409,"review_not_verified","초안 검사를 통과하지 못했습니다.");
         var result=obj("reviewId",id,"snapshotId",record.get("snapshotId"),"focus",record.get("focus"),"source",record.get("source"));
-        result.putAll(child(record,"result"));result.put("verification",checked.get("verification"));record(id);return result;
+        result.putAll(child(record,"result"));result.put("verification",checked.get("verification"));
+        return graphs.ifCurrent(str(record,"snapshotId"),()->ifStableForSave(id,child(record,"result").get("judge"),()->result));
     }
 }
