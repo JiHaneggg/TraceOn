@@ -112,8 +112,10 @@ def handler_for(index, raw_root=None, archive_dir=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8092)
+    # 기본값은 로컬 전용(127.0.0.1). 컨테이너에서는 --host 0.0.0.0으로 실행한다.
+    parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--index", type=Path, default=DEFAULT_INDEX)
     parser.add_argument("--raw-dir", type=Path)
     parser.add_argument("--archive-dir", type=Path)
     args = parser.parse_args()
-    ThreadingHTTPServer(("127.0.0.1", args.port), handler_for(Index(args.index), args.raw_dir, args.archive_dir)).serve_forever()
+    ThreadingHTTPServer((args.host, args.port), handler_for(Index(args.index), args.raw_dir, args.archive_dir)).serve_forever()

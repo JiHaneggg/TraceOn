@@ -43,5 +43,7 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8091)
+    # 기본값은 로컬 전용(127.0.0.1). 컨테이너에서는 --host 0.0.0.0으로 실행한다.
+    parser.add_argument("--host", default="127.0.0.1")
     args = parser.parse_args()
-    ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()
+    ThreadingHTTPServer((args.host, args.port), Handler).serve_forever()
