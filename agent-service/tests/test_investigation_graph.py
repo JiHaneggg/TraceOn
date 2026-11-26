@@ -58,6 +58,36 @@ class InvestigationGraphTests(unittest.TestCase):
         self.assertLessEqual({"alert_context", "basic_profile", "evidence_check"}, nodes)
         self.assertGreater(self.limit, 0)
 
+    def test_full_run_reuses_draft_and_verification_then_requires_a_person(self):
+        tool_calls = []
+
+        class Model:
+            def call(self, *, name, payload, validate, **kwargs):
+                answer = {"choice": "finish" if name == "investigator" else "cycle",
+                          "factIds": [payload["facts"][0]["factId"]]}
+                if name == "typology":
+                    answer["chunkIds"] = ["official:1"]
+                return {"status": "ok", "output": validate(answer), "callsUsed": 1, "costUsd": 0.01,
+                        "usage": {"inputTokens": 10, "outputTokens": 3}}
+
+        def tools(name, arguments):
+            tool_calls.append(name)
+            if name == "build_evidence_context":
+                return {"contextId": "context", "corpusSha256": "document-version",
+                        "citations": [{"chunkId": "official:1", "section": "1", "text": "근거"}]}
+            if name == "generate_review_report":
+                self.assertEqual(arguments["corpusSha256"], "document-version")
+                return {"reportId": "draft", "contextId": "context"}
+            return {"reportId": arguments["report"]["reportId"], "valid": True}
+
+        result = self.run(load_alert("cycle"), llm_client=Model(), call_tool=tools)
+        self.assertEqual(result["status"], "completed")
+        self.assertEqual(result["trace"][-1]["node"], "human_review")
+        self.assertEqual(result["budget"]["llmCalls"], 2)
+        self.assertTrue(result["humanReviewRequired"])
+        self.assertFalse(result["readyForSubmission"])
+        self.assertEqual(tool_calls, ["build_evidence_context", "generate_review_report", "verify_review_report"])
+
 
 if __name__ == "__main__":
     unittest.main()

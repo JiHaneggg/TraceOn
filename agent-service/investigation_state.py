@@ -34,6 +34,15 @@ class InvestigationState(TypedDict, total=False):
     profile: dict        # basic_profile output: account profiles, hints, routing signals
     route: str           # fast_track | investigate | close | human_review
     gate: dict           # evidence_check decision details
+    toolHistory: list
+    investigationFacts: list
+    context: dict
+    typology: dict
+    report: dict
+    verification: dict
+    judge: dict
+    humanReviewRequired: bool
+    readyForSubmission: bool
     hold: dict           # why the run went to human review: category, node, reasonCode
     budget: dict         # ceilings, counters, LLM usage and the absolute deadline
     status: str          # running | rejected | closed | held | completed

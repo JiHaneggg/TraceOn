@@ -42,6 +42,7 @@ def load_gate_config(path=CONFIG_PATH):
 
 
 HOLD_REASONS = {"risk_unavailable_without_facts": "evidence_insufficient",
+                "truncated_graph_without_confirmation": "evidence_insufficient",
                 "llm_budget_exhausted": "budget_exceeded", "deadline_exceeded": "budget_exceeded"}
 
 
@@ -63,6 +64,8 @@ def decide(context, profile, budget, config, now=None):
                          (True, False): ("investigate", "high_risk_without_facts"),
                          (False, True): ("investigate", "low_risk_with_facts"),
                          (False, False): ("close", "low_risk_without_facts")}[(high, bool(signals))]
+        if route == "close" and context.get("scope", {}).get("subgraphTruncated") is True:
+            return "human_review", "truncated_graph_without_confirmation", details
     if route in LLM_ROUTES and budget["llmCalls"] >= budget["maxLlmCalls"]:
         return "human_review", "llm_budget_exhausted", details
     if route in LLM_ROUTES and (time.time() if now is None else now) >= budget["deadlineAt"]:
