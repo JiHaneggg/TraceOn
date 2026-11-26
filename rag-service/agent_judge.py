@@ -1,6 +1,7 @@
 """Single-model semantic review with deterministic verdict branches."""
 import json
 import os
+from http.client import IncompleteRead
 from time import perf_counter
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
@@ -265,7 +266,7 @@ def post_judge(result, key, endpoint, body, interpret, transport=None):
             evaluation = interpret(json.loads(data))
     except HTTPError as error:
         evaluation = _http_failure(error)
-    except OSError:
+    except (OSError, IncompleteRead):
         evaluation = _held("judge_model_unavailable")
     except InvalidJudgeResponse as error:
         evaluation = _invalid_response(str(error))

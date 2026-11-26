@@ -41,7 +41,11 @@ services:
   # RAG 근거·초안 서비스. 사전에 만든 로컬 색인(data/rag)을 읽기 전용으로 사용한다.
   # 색인이 없으면 시작하지 않는다 → docs/team-handoff.md의 "RAG API 실행" 1회 준비 필요.
   rag:
-    build: ./rag-service
+    build:
+      context: ./rag-service
+      additional_contexts:
+        rule_sources: ./rule-service
+    command: ["python", "rag-service/rag_server.py", "--host", "0.0.0.0", "--port", "8092", "--judge-host", "rag"]
     read_only: true
     tmpfs:
       - /tmp
@@ -62,7 +66,9 @@ services:
       NEO4J_HTTP_URL: http://neo4j:7474
       SERVER_ADDRESS: 0.0.0.0
       TRACEON_MANIFEST: /app/demo/manifest.json
+      TRACEON_SCORE_FILE: /app/demo/demo-scores.json
       TRACEON_HISTORY_DB: /app/history/spring-analysis.sqlite3
+      SPRING_WEB_RESOURCES_STATIC_LOCATIONS: file:/app/frontend/
       RULE_URL: http://rule:8091/v1/rules/score
       RAG_URL: http://rag:8092
       NEO4J_USER: ${NEO4J_USER:-neo4j}
@@ -70,6 +76,7 @@ services:
       NEO4J_DATABASE: ${NEO4J_DATABASE:-neo4j}
     volumes:
       - ./data/processed/HI-Small-MVP:/app/demo:ro
+      - ./frontend/static:/app/frontend:ro
       - backend_history:/app/history
     depends_on:
       neo4j:

@@ -41,6 +41,8 @@ public class GraphController {
         return reviews.prepare(field(b,"snapshotId"),(Integer)b.get("findingIndex"));
     }
     @PostMapping("/review/verify") public Object verify(@RequestBody byte[] raw,HttpServletRequest request){query(request,Set.of(),Set.of());var b=body(raw,"reviewId");return reviews.verify(field(b,"reviewId"));}
+    @PostMapping("/review/judge") public Object judge(@RequestBody byte[] raw,HttpServletRequest request){query(request,Set.of(),Set.of());var b=body(raw,"reviewId");return reviews.judge(field(b,"reviewId"));}
+    @GetMapping("/review/judge") public Object judgeStatus(HttpServletRequest request){var q=query(request,Set.of("reviewId"),Set.of("reviewId"));return reviews.judgeStatus(q.get("reviewId"));}
     @PostMapping("/review/fact") public Object fact(@RequestBody byte[] raw,HttpServletRequest request){query(request,Set.of(),Set.of());var b=body(raw,"reviewId","factId");return reviews.fact(field(b,"reviewId"),field(b,"factId"));}
     @GetMapping("/review/citation") public Object citation(HttpServletRequest request){var q=query(request,Set.of("reviewId","chunkId"),Set.of("reviewId","chunkId"));return reviews.citation(q.get("reviewId"),q.get("chunkId"));}
     @GetMapping("/review/download") public ResponseEntity<byte[]> reviewDownload(HttpServletRequest request) {

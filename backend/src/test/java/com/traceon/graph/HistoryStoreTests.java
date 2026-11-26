@@ -36,6 +36,6 @@ class HistoryStoreTests {
     @Test void malformedCaptureCannotBeReadAsValid(){var bad=capture(1);child(bad,"payload").put("highlightTxIds",List.of("TX-999999999"));var stored=store().put(bad);
         assertThrows(ApiException.class,()->store().get(str(stored.body(),"historyId")));}
     @Test void refusesAnotherSnapshotsReview(){var graphs=mock(GraphService.class);var reviews=mock(ReviewService.class);when(graphs.current("parent")).thenReturn(child(capture(1),"payload"));
-        when(reviews.record("review")).thenReturn(obj("snapshotId","other"));var history=new HistoryService(graphs,reviews,store());
+        when(reviews.recordForSave("review")).thenReturn(obj("snapshotId","other"));var history=new HistoryService(graphs,reviews,store());
         assertEquals("history_review_mismatch",assertThrows(ApiException.class,()->history.save("parent","review")).code);assertFalse(Files.exists(dir.resolve("analysis.sqlite3")));}
 }

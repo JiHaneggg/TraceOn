@@ -4,3 +4,4 @@
 @media(max-width:520px){.review-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:0}.review-tabs button{font-size:12px;padding:12px 5px}.review-actions>div{width:100%}.review-actions>div .button{flex:1}.review-state{font-size:11px}.review-stage>span:last-child{font-size:10px}.review-heading p{font-size:11px}.review-evidence-dialog{width:calc(100vw - 16px)}}
 
 .review-refresh-source{margin:0 20px 15px}.review-refresh-source[hidden]{display:none}
+#review-judge[hidden], #review-judge-result[hidden], #hybrid-score[hidden] { display: none; }
