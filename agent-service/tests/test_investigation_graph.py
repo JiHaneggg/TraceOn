@@ -8,17 +8,24 @@ from support import HAS_LANGGRAPH, load_alert
 class InvestigationGraphTests(unittest.TestCase):
     def setUp(self):
         from investigation_graph import RECURSION_LIMIT, build_graph, run_investigation
-        self.build_graph, self.run, self.limit = build_graph, run_investigation, RECURSION_LIMIT
+        from llm_client import LLMClient
 
-    def test_valid_alert_runs_alert_context_profile_and_gate(self):
+        def run(alert, **options):
+            # Never read a real key from the environment in tests: an unconfigured client makes no call.
+            return run_investigation(alert, **{"llm_client": LLMClient(env={}), **options})
+        self.build_graph, self.run, self.limit = build_graph, run, RECURSION_LIMIT
+
+    def test_valid_alert_runs_to_the_investigator_and_holds_without_a_model(self):
         result = self.run(load_alert("cycle"))
-        self.assertEqual(result["status"], "running")
-        self.assertEqual([row["node"] for row in result["trace"]], ["alert_context", "basic_profile", "evidence_check"])
+        self.assertEqual([row["node"] for row in result["trace"]],
+                         ["alert_context", "basic_profile", "evidence_check", "investigator"])
         self.assertEqual(result["alertContext"]["ruleIds"], ["CYCLE"])
         self.assertEqual({row["source"] for row in result["evidence"]}, {"alert_context", "basic_profile"})
         self.assertEqual(result["profile"]["similarity"]["status"], "unavailable")
         # No risk source: a cycle alert with facts is investigated, never closed blind.
-        self.assertEqual((result["route"], result["gate"]["reasonCode"]), ("investigate", "risk_unavailable_with_facts"))
+        self.assertEqual(result["gate"]["reasonCode"], "risk_unavailable_with_facts")
+        self.assertEqual((result["status"], result["hold"]["category"], result["hold"]["reasonCode"]),
+                         ("held", "model_failure", "llm_not_configured"))
         self.assertEqual(result["budget"]["llmCalls"], 0)
 
     def test_gate_closure_ends_the_run_as_closed(self):
@@ -55,7 +62,7 @@ class InvestigationGraphTests(unittest.TestCase):
 
     def test_graph_exposes_ppt_node_names_and_a_recursion_limit(self):
         nodes = set(self.build_graph().get_graph().nodes)
-        self.assertLessEqual({"alert_context", "basic_profile", "evidence_check"}, nodes)
+        self.assertLessEqual({"alert_context", "basic_profile", "evidence_check", "investigator", "graph_tools"}, nodes)
         self.assertGreater(self.limit, 0)
 
 
