@@ -110,11 +110,29 @@ export class ReviewPanel{
     box.append(el('p','review-important','사람 검토 대기 · 자동 검사는 거래 사실·인용·저장 원문·허용된 본문을 대조합니다. 범죄 여부·법률 적용·근거의 의미적 충분성을 승인하지 않습니다.'));
     if(report.answerDisposition?.status==='abstained')box.append(el('p','review-warning','답변 보류: '+report.answerDisposition.abstentionReason));
     for(const observation of report.observations){const item=el('article','review-observation');item.append(el('p','',observation.text));const links=el('div','review-fact-links');for(const id of observation.factIds)links.append(this.factButton(id));item.append(links);box.append(item);}
+    const cashEvidence=report.cashEvidence;
+    const cashFindings=new Set();
+    if(cashEvidence){
+      const section=el('section','review-missing');
+      section.append(el('h4','','집금 근거의 지급 방식'),el('p','',`대상 거래의 지급 방식은 ${cashEvidence.targetPaymentFormat}입니다.`));
+      const list=el('ul');
+      for(const row of cashEvidence.findings){
+        cashFindings.add(row.findingId);
+        list.append(el('li','',`${row.findingId} · ${row.summary}`));
+      }
+      section.append(list);box.append(section);
+    }
     const fitness=context.evidenceFitness;
     if(fitness){
       const missing=el('section','review-missing');missing.append(el('h4','',fitness.label),el('p','',fitness.notice));
       for(const finding of fitness.findings){const details=el('details');details.open=finding.findingId===`finding.${this.findingIndex}`;details.append(el('summary','',ruleName(finding.ruleId)+' · 추가 확인'));
-        const list=el('ul');for(const item of finding.missingEvidence)list.append(el('li','',item.label+' — '+item.reason));if(!list.children.length)list.append(el('li','','현재 정의된 조건 외에도 법률·거래 맥락은 사람이 검토해야 합니다.'));details.append(list);missing.append(details);}
+        const list=el('ul');
+        for(const item of finding.missingEvidence){
+          if(item.id==='condition:cash_format_recorded'&&cashFindings.has(finding.findingId))continue;
+          list.append(el('li','',item.label+' — '+item.reason));
+        }
+        if(!list.children.length)list.append(el('li','','현재 정의된 조건 외에도 법률·거래 맥락은 사람이 검토해야 합니다.'));
+        details.append(list);missing.append(details);}
       if(!fitness.findings.length)missing.append(el('p','','현재 룰 탐지가 없다는 결과만으로 정상 거래를 확정하지 않습니다.'));
       box.append(missing);
     }

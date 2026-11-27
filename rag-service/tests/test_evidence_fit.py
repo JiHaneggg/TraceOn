@@ -124,25 +124,64 @@ class EvidenceFitTest(unittest.TestCase):
         self.assertEqual(conditions['economic_purpose'],'not_verified')
         self.assertFalse(finding['boundedRequirementsMet'])
 
-    def test_unmet_payment_conditions_render_as_gaps_and_legacy_reports_verify(self):
+    def test_older_payment_condition_reports_still_verify(self):
         for kind, payment_format in (("fan_in", "Cash"), ("fan_out", "Wire")):
             with self.subTest(kind=kind):
                 graph = self.graph(kind)
                 for row in graph["edges"]:
                     row["paymentFormat"] = "ACH"
                 context = build_context(self.index, graph)
-                report = generate_report(context)
+                current = generate_report(context)
+                report = render_report(context, current["plan"], current["generation"],
+                                       condition_rendering_version="1.1")
                 legacy_label = f"관련 거래의 원천 지급 방식이 모두 {payment_format}로 기록됨"
                 self.assertIn(f"{payment_format} 조건 미충족", report["markdown"])
                 self.assertNotIn(legacy_label, report["markdown"])
                 self.assertTrue(verify_report(self.repo, graph, None, report)["valid"])
 
-                legacy = render_report(context, report["plan"], report["generation"], legacy_condition_labels=True)
+                legacy = render_report(context, report["plan"], report["generation"],
+                                       condition_rendering_version=None)
                 self.assertIn(legacy_label, legacy["markdown"])
                 self.assertTrue(verify_report(self.repo, graph, None, legacy)["valid"])
 
                 report["markdown"] = legacy["markdown"]
                 self.assertFalse(verify_report(self.repo, graph, None, self.rehash(report))["valid"])
+
+    def test_fan_in_counts_distinguish_the_target_and_verified_finding(self):
+        for mode in ("none", "mixed", "all"):
+            with self.subTest(mode=mode):
+                graph = self.graph()
+                finding = next(row for row in build_context(self.index, graph)["findings"] if row["ruleId"] == "FAN_IN")
+                evidence_ids = set(finding["evidenceTxIds"])
+                cash_ids = {min(evidence_ids - {graph["targetTxId"]})} if mode == "mixed" else set()
+                if mode == "all":
+                    cash_ids = evidence_ids
+                for row in graph["edges"]:
+                    row["paymentFormat"] = "Cash" if row["txId"] in cash_ids else "Credit Card"
+                context = build_context(self.index, graph)
+                report = generate_report(context)
+                summary = report["cashEvidence"]["findings"][0]
+                self.assertEqual(summary["findingId"], finding["findingId"])
+                self.assertEqual((summary["transactionCount"], summary["cashCount"]), (len(evidence_ids), len(cash_ids)))
+                observation = f"조회된 집금 근거 {len(evidence_ids)}건 중 {len(cash_ids)}건이 Cash로 기록됐습니다."
+                self.assertEqual(summary["summary"], observation)
+                self.assertIn(observation, report["markdown"])
+                target_format = "Cash" if graph["targetTxId"] in cash_ids else "Credit Card"
+                self.assertEqual(report["cashEvidence"]["targetPaymentFormat"], target_format)
+                self.assertIn(f"대상 거래의 지급 방식은 {target_format}입니다.", report["markdown"])
+                self.assertNotIn("Cash 조건 미충족", report["markdown"])
+                self.assertNotIn("모두 Cash라는 조건", report["markdown"])
+                self.assertEqual(report["conditionRenderingVersion"], "1.3")
+                if mode == "mixed":
+                    historical = render_report(context, report["plan"], report["generation"],
+                                               condition_rendering_version="1.2")
+                    self.assertIn("모두 Cash라는 조건", historical["markdown"])
+                    self.assertTrue(verify_report(self.repo, graph, None, historical)["valid"])
+                self.assertTrue(verify_report(self.repo, graph, None, report)["valid"])
+                summary["cashCount"] += 1
+                check = verify_report(self.repo, graph, None, self.rehash(report))
+                self.assertFalse(check["valid"])
+                self.assertIn("cashEvidence", check["checks"]["renderedContent"]["mismatchedFields"])
 
     def test_insufficient_question_is_not_answered_by_other_references(self):
         context=self.context(query='KB국민은행 내부 규정 STR 승인 기준')

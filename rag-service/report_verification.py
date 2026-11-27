@@ -71,9 +71,9 @@ def verify_report(repository, graph, rule_result, report, query=None):
                                 or generation["responseId"] is not None and not isinstance(generation["responseId"], str)):
             raise ValueError("Invalid provider metadata")
         validate_plan(context, report["plan"])
-        # Reports saved before explicit condition statuses remain verifiable.
+        # Rebuild the presentation that was used when the report was saved.
         expected = render_report(context, report["plan"], generation,
-                                 legacy_condition_labels="conditionRenderingVersion" not in report)
+                                 condition_rendering_version=report.get("conditionRenderingVersion"))
         expected_markdown = expected["markdown"]
         mismatched = [field for field in expected if field != "reportId" and report.get(field) != expected[field]]
         mismatched += [field for field in report if field not in expected]
