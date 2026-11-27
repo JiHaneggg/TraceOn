@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 from corpus import canonical, digest
 from evidence import validate_draft
 from source_presentation import source_groups
-from evidence_fit import quotes_for_report
+from evidence_fit import observe_fan_in_cash, quotes_for_report
 
 
 class ReportUnavailable(RuntimeError):
@@ -144,15 +144,15 @@ def openai_plan(context, transport=None):
 
 
 def cash_evidence_for_report(context, *, condition_rendering_version):
-    fan_in = [finding for finding in context["findings"] if finding["ruleId"] == "FAN_IN"]
-    if not fan_in:
+    evidence = context.get("evidenceFitness", {}).get("cashEvidence")
+    if evidence is None:
+        evidence = observe_fan_in_cash(context["findings"], {tx["txId"]: tx for tx in context["evidenceTransactions"]},
+                                       context["targetTransaction"]["paymentFormat"])
+    if evidence is None:
         return None
-    payment_formats = {tx["txId"]: tx["paymentFormat"] for tx in context["evidenceTransactions"]}
     rows = []
-    for finding in fan_in:
-        evidence_ids = set(finding["evidenceTxIds"])
-        total = len(evidence_ids)
-        cash = sum(payment_formats[tx_id].casefold() == "cash" for tx_id in evidence_ids)
+    for finding in evidence["findings"]:
+        total, cash = finding["transactionCount"], finding["cashCount"]
         summary = f"조회된 집금 근거 {total}건 중 {cash}건이 Cash로 기록됐습니다."
         # Reproduce archived 1.2 wording exactly when verifying saved drafts.
         if condition_rendering_version == "1.2":
@@ -164,14 +164,15 @@ def cash_evidence_for_report(context, *, condition_rendering_version):
                 summary += " 지급 방식이 섞여 있어 조회된 집금 근거가 모두 Cash라는 조건을 충족하지 않습니다."
             else:
                 summary += " 조회된 근거에서 Cash 지급 방식이 확인되지 않았습니다."
-        rows.append({"findingId": finding["findingId"], "transactionCount": total,
-                     "cashCount": cash, "summary": summary})
-    return {"targetPaymentFormat": context["targetTransaction"]["paymentFormat"], "findings": rows}
+        rows.append({**finding, "summary": summary})
+    return {**evidence, "findings": rows}
 
 
 def render_report(context, plan, generation, *, condition_rendering_version="1.3"):
     if condition_rendering_version not in (None, "1.1", "1.2", "1.3"):
         raise ValueError("Unknown condition rendering version")
+    if context.get("evidenceFitness", {}).get("cashEvidence") and condition_rendering_version != "1.3":
+        raise ValueError("The Cash observation policy requires the count-only report format")
     validate_plan(context, plan)
     observations = {row["observationId"]: row for row in observation_catalog(context)}
     citations = {row["chunkId"]: row for row in context["citations"]}

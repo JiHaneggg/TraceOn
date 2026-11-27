@@ -11,6 +11,8 @@ from corpus import canonical, digest
 ROLES = {"reporting_context", "due_diligence_context", "pattern_reference"}
 ROLE_LABELS = {"reporting_context": "STR 보고 절차의 일반 근거", "due_diligence_context": "고객확인 관련 일반 근거",
                "pattern_reference": "해당 패턴을 설명하는 참고 근거"}
+LEGACY_POLICY_ID = "traceon-evidence-fit-v1"
+CASH_OBSERVATION_POLICY_ID = "traceon-evidence-fit-v2"
 MIN_CONDITIONS = {
     "CYCLE": {"temporal_cycle", "same_funds", "economic_purpose", "client_identity"},
     "FAN_IN": {"multiple_sending_accounts", "cash_format_recorded", "geographic_withdrawal_context", "economic_purpose", "client_identity"},
@@ -38,7 +40,7 @@ def policy_digest(policy):
 def validate_policy(policy, index=None, *, strict_bindings=False):
     if not isinstance(policy, dict) or set(policy) != {"schemaVersion", "policyId", "reviewStatus", "references", "rules", "policySha256"}:
         raise ValueError("Invalid evidence policy shape")
-    if (policy["schemaVersion"] != "1.0" or policy["policyId"] != "traceon-evidence-fit-v1"
+    if (policy["schemaVersion"] != "1.0" or policy["policyId"] not in (LEGACY_POLICY_ID, CASH_OBSERVATION_POLICY_ID)
             or policy["reviewStatus"] != "developer_curated_pending_domain_review"
             or policy["policySha256"] != policy_digest(policy)):
         raise ValueError("Unsupported evidence policy or checksum mismatch")
@@ -61,8 +63,12 @@ def validate_policy(policy, index=None, *, strict_bindings=False):
         if not isinstance(rule, dict) or set(rule) != {"roles", "conditions"} or not isinstance(rule["roles"], dict) or set(rule["roles"]) != ROLES:
             raise ValueError("Invalid policy rule roles")
         conditions = rule["conditions"]
-        if not isinstance(conditions, list) or any(not isinstance(c, str) for c in conditions) or len(conditions) != len(set(conditions)) or set(conditions) != MIN_CONDITIONS[kind]:
-            raise ValueError("Required observable/unverified conditions cannot be removed")
+        expected_conditions = MIN_CONDITIONS[kind]
+        if policy["policyId"] == CASH_OBSERVATION_POLICY_ID and kind == "FAN_IN":
+            expected_conditions = expected_conditions - {"cash_format_recorded"}
+        if (not isinstance(conditions, list) or any(not isinstance(c, str) for c in conditions)
+                or len(conditions) != len(set(conditions)) or set(conditions) != expected_conditions):
+            raise ValueError("Condition set does not match the evidence policy version")
         for role, ids in rule["roles"].items():
             if not isinstance(ids, list) or any(not isinstance(i, str) or i not in refs for i in ids) or len(ids) != len(set(ids)):
                 raise ValueError("Unknown/duplicate policy reference ID")
@@ -116,7 +122,18 @@ def check_condition(condition, finding, transactions):
             "factIds": fact_ids, "detail": detail}
 
 
-def assess(index, findings, citations, transactions, primary_search):
+def observe_fan_in_cash(findings, by_tx, target_payment_format):
+    rows = []
+    for finding in findings:
+        if finding["ruleId"] != "FAN_IN":
+            continue
+        evidence_ids = set(finding["evidenceTxIds"])
+        cash_count = sum(by_tx[tx_id]["paymentFormat"].casefold() == "cash" for tx_id in evidence_ids)
+        rows.append({"findingId": finding["findingId"], "transactionCount": len(evidence_ids), "cashCount": cash_count})
+    return {"targetPaymentFormat": target_payment_format, "findings": rows} if rows else None
+
+
+def assess(index, findings, citations, transactions, primary_search, *, target_payment_format):
     policy = getattr(index, "evidence_fit_policy", None)
     if policy is None:
         return None
@@ -165,6 +182,10 @@ def assess(index, findings, citations, transactions, primary_search):
               "legalApplicabilityVerified": False, "bankInternalPolicyVerified": False,
               "rawSnapshotChecked": False, "snapshotCheckLocation": "report_verification.checks.sourceSnapshots",
               "notice": "원문 연결과 관찰 가능한 조건을 점검한 결과입니다. 법률 적용·범죄·보고 의무의 자동 판정이 아닙니다."}
+    if policy["policyId"] == CASH_OBSERVATION_POLICY_ID:
+        cash_evidence = observe_fan_in_cash(findings, by_tx, target_payment_format)
+        if cash_evidence is not None:
+            result["cashEvidence"] = cash_evidence
     result["assessmentSha256"] = digest(canonical(result))
     return result
 
