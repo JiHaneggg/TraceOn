@@ -18,6 +18,8 @@ from investigation_state import initial_state
 from llm_client import configuration, LLMClient
 from retrieval import Index
 from risk_score import HybridRiskScore, sha256_file
+from evaluation_index import SourceIndex
+from threading import local
 
 
 def load_sample(path):
@@ -39,6 +41,19 @@ def summarize(cases, flags):
             "reviewCount": sum(flags)}
 
 
+class ThreadIndexSource:
+    """expand_account store for worker threads: a sqlite connection cannot cross threads."""
+    name = "offline_source_index"
+
+    def __init__(self, path):
+        self.path, self.local = path, local()
+
+    def lookup(self, account, since, as_of, limit):
+        if not hasattr(self.local, "source"):
+            self.local.source = SourceIndex(self.path)
+        return self.local.source.lookup(account, since, as_of, limit)
+
+
 class BatchRiskScores:
     def __init__(self):
         self.values = {}
@@ -54,6 +69,7 @@ def evaluate_case(graph_runner, case, alert):
         raise ValueError("The frozen alert did not pass input verification")
     held = state.get("hold", {})
     budget, judge = state["budget"], state.get("judge", {})
+    investigation = state.get("investigation") or {}
     gate_candidate = alert["ruleResult"]["flagged"] and state["gate"]["reasonCode"] != "low_risk_without_facts"
     return {
         "targetTxId": case["targetTxId"], "ruleAlert": alert["ruleResult"]["flagged"],
@@ -62,6 +78,9 @@ def evaluate_case(graph_runner, case, alert):
         "modelCalls": budget["llmCalls"], "costUsd": budget["costUsd"], "inputTokens": budget["inputTokens"],
         "outputTokens": budget["outputTokens"], "holdCategory": held.get("category"),
         "holdErrorClass": held.get("errorClass"), "holdReason": held.get("reasonCode"),
+        "investigatorToolCalls": len(investigation.get("toolCalls", [])),
+        "loopReason": state["gate"].get("loop", {}).get("reasonCode"),
+        "typology": state.get("typology", {}).get("choice"),
         "validatedDraft": state.get("verification", {}).get("valid") is True,
         "judgeStatus": judge.get("status"), "latencyMs": round((perf_counter() - started) * 1000),
     }
@@ -91,8 +110,8 @@ def main(client_override=None):
     client = (client_override or LLMClient()) if live else None
     service = Path(__file__).resolve().parent
     implementation = {name: sha256_file(service / name) for name in (
-        "alert_rules.py", "basic_profile.py", "evidence_check.py", "investigation_graph.py",
-        "investigation_steps.py", "llm_client.py", "risk_score.py",
+        "alert_rules.py", "basic_profile.py", "evidence_check.py", "graph_tools.py", "investigation_graph.py",
+        "investigation_steps.py", "investigator.py", "llm_client.py", "risk_score.py",
     )}
     stamp = {"suite": "traceon-investigation-evaluation-v2", "mode": args.mode,
              "packetSha256": packet["packetSha256"], "model": client.model if live else None,
@@ -123,6 +142,7 @@ def main(client_override=None):
                 raise ValueError("A training target leaked into the evaluation")
             batch_scores = BatchRiskScores()
             graph_runner = build_graph(risk_source=batch_scores, llm_client=client,
+                                       graph_source=ThreadIndexSource(args.source_index) if live else None,
                                        call_tool=tools.call if tools else None, judge_enabled=live)
             with ThreadPoolExecutor(max_workers=args.workers) as executor:
                 for offset in range(0, len(pending), args.workers):

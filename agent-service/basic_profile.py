@@ -8,7 +8,7 @@ evidence; pattern hints only say where to look; similarity only routes.
 from __future__ import annotations
 
 from bisect import bisect_right
-from collections import defaultdict
+from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from decimal import Decimal
 
@@ -91,11 +91,14 @@ def profile_account(edges, account, alias, roles, config=PROFILE_CONFIG):
     group_ids = _similar_amount_group(rows, Decimal(config["similarAmountTolerance"]))
     below_ids = _just_below(rows, config)
     fastest, fastest_ids = _fastest_forward(incoming, outgoing)
+    group = set(group_ids)
     return {
         "alias": alias, "accountKey": account, "roles": roles, "allTxIds": all_ids,
         "flow": {"inCount": len(incoming), "outCount": len(outgoing),
                  "inCounterparties": len({row["counterparty"] for row in incoming}),
                  "outCounterparties": len({row["counterparty"] for row in outgoing}),
+                 # Share of transactions with the single most frequent counterparty (1.0 = all with one).
+                 "topInCounterpartyShare": _top_share(incoming), "topOutCounterpartyShare": _top_share(outgoing),
                  "selfTransferCount": self_transfers,
                  "inTotals": _totals(incoming), "outTotals": _totals(outgoing),
                  "inOutRatio": _in_out_ratio(incoming, outgoing),
@@ -108,6 +111,8 @@ def profile_account(edges, account, alias, roles, config=PROFILE_CONFIG):
                        "quickForward": fastest is not None and fastest <= config["quickForwardMinutes"] * 60,
                        "passThrough": _pass_through(incoming, outgoing, config)},
         "amounts": {"largestSimilarAmountGroup": len(group_ids), "similarAmountTxIds": group_ids,
+                    # Recurring payments with one partner look different from many senders using one amount.
+                    "similarAmountCounterparties": len({row["counterparty"] for row in rows if row["txId"] in group}),
                     "similarAmountShare": str((Decimal(len(group_ids)) / len(rows)).quantize(RATIO)) if rows else "0",
                     "justBelowThresholdCount": len(below_ids), "justBelowTxIds": below_ids,
                     "thresholdCurrencies": sorted(config["reportingThresholds"])},
@@ -125,9 +130,15 @@ def profile_facts(profile):
     rows += [(f".flow.inTotal.{currency}", total, flow["inTxIds"]) for currency, total in flow["inTotals"].items()]
     rows += [(f".flow.outTotal.{currency}", total, flow["outTxIds"]) for currency, total in flow["outTotals"].items()]
     rows += [(f".flow.inOutRatio.{currency}", ratio, every) for currency, ratio in flow["inOutRatio"].items()]
+    if flow["inTxIds"]:
+        rows.append((".flow.topInCounterpartyShare", flow["topInCounterpartyShare"], flow["inTxIds"]))
+    if flow["outTxIds"]:
+        rows.append((".flow.topOutCounterpartyShare", flow["topOutCounterpartyShare"], flow["outTxIds"]))
     rows += [(".timing.maxTxInBurstWindow", timing["maxTxInBurstWindow"], timing["burstTxIds"] or every),
              (".timing.activeSpanSeconds", timing["activeSpanSeconds"], every),
              (".amounts.largestSimilarAmountGroup", amounts["largestSimilarAmountGroup"],
+              amounts["similarAmountTxIds"] or every),
+             (".amounts.similarAmountCounterparties", amounts["similarAmountCounterparties"],
               amounts["similarAmountTxIds"] or every),
              (".amounts.justBelowThresholdCount", amounts["justBelowThresholdCount"],
               amounts["justBelowTxIds"] or every)]
@@ -201,6 +212,13 @@ def _totals(rows):
     for row in rows:
         totals[row["currency"]] += row["amount"]
     return {currency: str(total) for currency, total in sorted(totals.items())}
+
+
+def _top_share(rows):
+    if not rows:
+        return "0"
+    top = max(Counter(row["counterparty"] for row in rows).values())
+    return str((Decimal(top) / len(rows)).quantize(RATIO))
 
 
 def _in_out_ratio(incoming, outgoing):

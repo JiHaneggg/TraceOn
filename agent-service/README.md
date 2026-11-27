@@ -12,11 +12,11 @@
 | 2 | `basic_profile` | 코드 | 완료: 유입·유출, 시간 집중도, 입금 후 출금(통과), 금액 패턴, 패턴 힌트, 라우팅 신호(팀 룰+ML 위험 점수, 임베딩 유사도) |
 | 3 | `evidence_check` | 코드 게이트 | 완료: 위험 점수 × 세탁 신호 사실 2×2 분기, 오탐 종료(근거 사실 ID 기록), 안전 규칙 |
 | 4 | 공통 LLM 호출부 | 코드 | 완료: 오류 분류, 제한된 재시도·백오프, 예외 없는 보류, 호출·시간 예산, 토큰·비용 기록, 보류 분류 |
-| 5 | `investigator` | LLM + 그래프 도구 | 예정 |
-| 6 | `typology` | LLM | 예정 |
-| 7 | `str_writer` | LLM | 예정 |
-| 8 | `verifier` | 코드 | 예정 |
-| 9 | `human_review` | 사람 (interrupt) | 예정 |
+| 5 | `investigator` + `graph_tools` | LLM + 그래프 도구 | 완료: 도구 4개, 체크리스트 5항목, 코드 검증, 종료 조건(`evidence_check` 루프 검사). 실모델 검증 표본 결과는 아래 "조사 루프" 절 |
+| 6 | `typology` | LLM | PR #4: 룰 사실 ID와 RAG 청크 ID를 함께 인용해 유형 가설(cycle·fan_in·fan_out·other·uncertain). 닫힌 순환이 확인되면 순환 우선 |
+| 7 | `str_writer` | 코드 (템플릿) | PR #4: 기존 rag-service 검토 초안을 같은 문서 버전으로 생성. LLM을 쓰지 않는다 |
+| 8 | `verifier` (+ 선택 `report_judge`) | 코드 (+ LLM) | PR #4: 기존 사실·인용 검증, 통과하면 기존 Judge 규격으로 판정 |
+| 9 | `human_review` | 사람 | PR #4: 모든 결과에 사람 검토 필요 표시(`humanReviewRequired`). 승인·수정·반려 입력(interrupt)은 예정 |
 
 ## 설치와 테스트
 
@@ -131,7 +131,7 @@ python scripts/evaluate-recipient-hybrid.py evaluate --freeze artifacts/recipien
 
 ## 공통 LLM 호출부 (llm_client)
 
-LLM 노드(investigator, typology, str_writer)는 모두 `LLMClient.call()`로 모델을 부른다. OpenAI Responses API의 엄격한 JSON 스키마 출력을 쓰고, 표준 라이브러리만 사용한다. 호출 결과는 예외 없이 `status`가 `ok` 또는 `held`인 사전으로 돌아온다.
+LLM 노드(investigator, typology, report_judge)는 모두 `LLMClient.call()`로 모델을 부른다. OpenAI Responses API의 엄격한 JSON 스키마 출력을 쓰고, 표준 라이브러리만 사용한다. 호출 결과는 예외 없이 `status`가 `ok` 또는 `held`인 사전으로 돌아온다.
 
 | 오류 | 분류 (`errorClass`) | 처리 |
 |---|---|---|
@@ -158,9 +158,77 @@ LLM 노드(investigator, typology, str_writer)는 모두 `LLMClient.call()`로 �
 | `evidence_insufficient` | 근거 부족 | 위험 점수도 세탁 신호도 없음, 규정 근거를 찾지 못함 |
 | `model_failure` | 모델 실패 | 일시 오류 재시도 소진, 형식 오류 반복, 거절, 인증·요청 오류 |
 | `budget_exceeded` | 예산 초과 | LLM 호출 8회 또는 60초 소진 |
-| `no_progress` | 진전 없음 | 같은 도구·인자 반복 (5단계에서 사용) |
+| `no_progress` | 진전 없음 | 같은 도구·인자 반복, 미확인 항목이 2단계 연속 줄지 않음 |
 
 `hold`에는 노드, 이유 코드, LLM 오류 분류, 마지막 오류 코드, 응답 ID를 함께 남긴다. 사실·인용 불일치처럼 검증에서 틀린 초안은 보류가 아니라 반려(`rejected`)로 구분한다(8단계).
+
+## 조사 루프 (investigator + graph_tools)
+
+게이트가 `investigate`로 보낸 알림만 들어온다. LLM은 매 단계 체크리스트 상태를 갱신하고, 도구 하나를 부르거나 결론을 낸다. 도구 계산은 코드가 하고, 다음 노드는 `evidence_check`의 루프 검사가 정한다.
+
+```
+evidence_check --investigate--> investigator --call_tool--> graph_tools --> evidence_check
+                                     └--------conclude-------------------> evidence_check
+evidence_check --typology / fast_track--> typology --> str_writer --> verifier --> (report_judge) --> human_review
+```
+
+- 실행 범위는 연결한 어댑터로 정한다. 모델이 없으면 게이트까지, 모델만 있으면 조사 루프까지(유형 판별로 넘어갈 경로만 기록), 모델과 RAG 도구(`call_tool`)가 있으면 끝까지 간다. 보류는 모델이 연결된 실행이면 `human_review`를 거친다.
+- 결론을 낼 때 체크리스트에 인용한 사실(의심 항목 먼저, 최대 40개)을 `investigationFacts`로 typology에 넘긴다.
+
+**도구 4개** (`graph_tools.py`). 결과는 `inv.T{n}.*` 근거 사실로 상태에 쌓이고 이후 단계에서 인용할 수 있다.
+
+| 도구 | 인자 | 하는 일 |
+|---|---|---|
+| `trace_funds` | 계좌, 방향(정방향·역방향), 1~2홉, 창 24·72·168시간 | 받은 돈이 어디로 이어졌는지, 어디서 왔는지 시간 순서로 추적 |
+| `find_cycles` | 계좌, 2~4홉, 창 | 계좌를 떠난 돈이 다시 돌아오는 시간 순서 경로 |
+| `account_profile` | 계좌 | 아무 계좌나 `basic_profile`과 같은 지표로 측정 |
+| `expand_account` | 계좌 | 원본 색인에서 그 계좌의 과거 거래를 50건 더 읽음. 알림 시각 이전 7일만, 알림 계좌에서 4홉까지 |
+
+- 도구는 알림 시각 이전 거래만 쓴다. 경로는 20개, 사실당 거래 ID는 50개, 작업 그래프는 2,000건이 상한이다.
+- 합성 테스트에는 `NoExpansionSource`(서브그래프만), 실제 데이터에는 `IndexSource`(원본 색인)를 쓴다.
+
+**체크리스트 5항목** (`investigator.CHECKLIST`): `onward_flow`(경유·통과), `source_pattern`(집금·분산), `circularity`(순환), `counterparty_role`(주요 상대 계좌가 경유 계좌인지, 흐름 사실로 판단), `amount_pattern`(반복 금액·기준 이하 쪼개기). 상태는 `suspicious`, `benign`, `not_applicable`, `unconfirmed`다.
+
+**코드 검증** (위반하면 `output` 오류로 1회 재시도 후 보류):
+- `unconfirmed`가 아니면 근거 사실 ID를 하나 이상 인용한다. 입력에 없는 ID는 거부한다.
+- 알림 사실(`alert.*`, 룰 결과)만으로는 `suspicious`가 될 수 없다. 알림이 울린 이유를 다시 의심 근거로 쓰는 순환 논리를 막는다.
+- 항목마다 의심 근거로 인정하는 사실 종류가 정해져 있다(`SUSPICION_EVIDENCE`). 모양 힌트나 상대 계좌 수만으로는 경유 계좌로 보지 않는다.
+- 결론과 체크리스트가 모순되면 거부한다. 도구 인자는 도구별로 허용된 값만 받는다.
+
+**종료 조건** (`evidence_check.loop_decide`, PPT 순서). 결과 판정은 LLM이 결론을 낼 때만 한다. 체크리스트가 다 찼어도 LLM이 더 조사하려 하면 끊지 않는다.
+
+| 조건 | 경로 | 이유 코드 |
+|---|---|---|
+| 미확인 0개, 의심 2개 이상 | `typology` | `evidence_sufficient` |
+| 미확인 0개, 의심 0개, 정상 2개 이상, LLM 결론 "혐의 없음", 도구 1회 이상 사용 | `close` | `no_suspicion` (근거 사실 ID 기록) |
+| 그 외 결론 | 사람 검토 | `checklist_incomplete`, `checklist_mixed`, `closure_not_confirmed`, `closure_without_investigation` |
+| 같은 도구·인자 반복, 미확인이 2단계 연속 줄지 않음 | 사람 검토 | `repeated_tool_call`, `unconfirmed_not_decreasing` (`no_progress`) |
+| LLM 예산·시간 소진 | 사람 검토 | `llm_budget_exhausted`, `deadline_exceeded` |
+
+- 조사 루프는 LLM 호출 2회를 유형 판별과 Judge 몫으로 남긴다(`RESERVED_LLM_CALLS`). 초안은 템플릿이라 LLM을 쓰지 않는다. 도구 3회(`maxIterations`) 뒤에는 도구 없이 결론만 내는 마지막 기회를 한 번 준다.
+- `basic_profile`에 조사용 사실을 추가했다: `flow.topInCounterpartyShare`, `flow.topOutCounterpartyShare`, `amounts.similarAmountCounterparties`.
+
+**실모델 실행** (V2 검증 구간, 교차검증 위험 점수, 원본 색인 확장):
+
+```powershell
+.venv\Scripts\python -B agent-service/run_investigations.py --env-file .env --per-label 4 --seed 99 --output artifacts/agent-investigation/<새이름>.json
+```
+
+### 검증 구간 실험 결과 (2026-11-26, 설계 5차·6회 실행, 52건, $0.196, 벤치마크 아님)
+
+게이트가 `investigate`로 보낸 알림에서 라벨별로 같은 수를 뽑았다. 회차는 V2 룰·데이터와 헷갈리지 않게 1차~5차로 적는다(결과 파일명 끝의 `-v2`~`-v5`가 2차~5차). 1~3차는 시드 20261126의 같은 8건이고, 3차부터는 같은 표본에 맞추지 않으려고 새 시드(7, 99, 2026)를 추가로 썼다.
+
+| 회차 | 바꾼 것 | 세탁 | 정상 |
+|---|---|---|---|
+| 1차 | 첫 설계 | 유형 판별 3, 보류 1 | 유형 판별 3, 보류 1 |
+| 2차 | 코드가 체크리스트로 판정, 알림 사실만으로 의심 금지 | 보류 3, 종료 1 | 보류 4 |
+| 3차 | 조기 종료 제거, 도구 안내 (같은 8건 + 시드 7의 8건) | 유형 판별 4, 보류 4 | 유형 판별 6, 보류 1, 종료 1 |
+| 4차 | 항목별 근거 종류 지정 (시드 99, 8건) | 보류 4 | 보류 3, 유형 판별 1 |
+| 5차 | 상대 계좌 항목을 흐름 사실로 판단 (시드 2026, 12건) | 보류 3, **종료 3** | 보류 5, 종료 1 |
+
+- 알림당 LLM 평균 4.0회, 약 $0.004, 평균 17~23초(최대 30초). 결과 파일은 `artifacts/agent-investigation/validation-sample-*.json`이다.
+- **결론: 지금 데이터와 도구로는 조사 단계가 세탁과 정상을 구분해 안전하게 닫지 못한다.** 닫힌 세탁은 STACK·GATHER-SCATTER의 마지막 수취 계좌로, 주변만 보면 정상처럼 보였다. 고객·목적·업종 정보가 없어서 "의심 신호가 없음"이 정상의 증거가 되지 못한다.
+- 현재 코드는 5차 상태라 조사 단계의 종료가 가능하다. 조사 후 처리 방식(전부 사람 검토 / 검토 순서만 조정 / 종료)은 팀 결정을 기다린다. 순서 조정으로 정해지면 종료를 끄고 조사 결과를 우선순위로 바꾼다.
 
 ## 데이터
 

@@ -17,6 +17,7 @@ from typing import Annotated, TypedDict
 # Per-alert ceilings from the PPT (Slide 9, Project Charter: 60 seconds per alert).
 BUDGET_LIMITS = {"maxLlmCalls": 8, "maxIterations": 3, "maxHops": 4, "maxSeconds": 60}
 ALERT_FIELDS = {"graph", "ruleResult", "query"}
+RESERVED_LLM_CALLS = 2   # the investigation loop leaves these for typology and the report Judge
 # Why an investigation went to a person instead of finishing automatically (PPT 종료 조건).
 HOLD_CATEGORIES = {
     "evidence_insufficient": "근거 부족",   # facts or documents cannot support a conclusion
@@ -34,9 +35,9 @@ class InvestigationState(TypedDict, total=False):
     profile: dict        # basic_profile output: account profiles, hints, routing signals
     route: str           # fast_track | investigate | close | human_review
     gate: dict           # evidence_check decision details
-    toolHistory: list
-    investigationFacts: list
-    context: dict
+    investigation: dict  # investigator loop: decisions, tool calls, added edges, pending action
+    investigationFacts: list  # facts the investigator cited when it concluded; typology reads these
+    context: dict        # rag-service evidence context used by typology and the draft
     typology: dict
     report: dict
     verification: dict

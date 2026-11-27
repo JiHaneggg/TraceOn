@@ -1,4 +1,8 @@
-"""Bounded tool selection and report verification for the investigation graph."""
+"""Typology, draft, verification, report Judge and human review for the investigation graph.
+
+The investigator itself is the graph-tool loop in investigator.py; it hands the facts it
+cited to typology as `investigationFacts`.
+"""
 from agent_judge import build_judge_input, decide as judge_decision, InvalidJudgeResponse, PROMPT, response_schema, SINGLE_VERSION
 from evidence_lookup import EvidenceError
 from investigation_state import charge_llm, hold, llm_hold, remaining_llm_calls
@@ -6,18 +10,13 @@ from llm_client import LLMOutputError
 from reports import ReportUnavailable
 
 
-TOOLS = ("timing", "forwarding", "amounts", "rule_findings")
 PATTERNS = ("cycle", "fan_in", "fan_out", "other", "uncertain")
 RULE_PATTERNS = {"CYCLE": "cycle", "FAN_IN": "fan_in", "FAN_OUT": "fan_out"}
 
 
-def evidence_rows(state, group=None):
-    facts = [row for row in state["evidence"] if row["evidenceTxIds"]]
-    if group == "rule_findings":
-        facts = [row for row in facts if row["factId"].startswith("alert.F")]
-    elif group is not None:
-        facts = [row for row in facts if f".{group}." in row["factId"]]
-    return facts[:20]
+def evidence_rows(state):
+    """Fallback facts for typology when the gate fast-tracks without an investigation."""
+    return [row for row in state["evidence"] if row["evidenceTxIds"]][:20]
 
 
 def model_node(client, state, name, instructions, payload, choices, sources=None, validate_choice=None):
@@ -42,8 +41,6 @@ def model_node(client, state, name, instructions, payload, choices, sources=None
                     or not all(isinstance(item, str) and item in allowed for item in ids)
                     or len(set(ids)) != len(ids)):
                 raise LLMOutputError("invalid_investigation_evidence")
-        if answer["choice"] == "finish" and not answer["factIds"]:
-            raise LLMOutputError("missing_investigation_evidence")
         if sources is not None and answer["choice"] != "uncertain" and not (answer["factIds"] and answer["chunkIds"]):
             raise LLMOutputError("missing_typology_evidence")
         if validate_choice is not None:
@@ -55,45 +52,6 @@ def model_node(client, state, name, instructions, payload, choices, sources=None
         max_calls=remaining_llm_calls(state["budget"]), deadline=state["budget"]["deadlineAt"],
     )
     return result, charge_llm(state["budget"], result)
-
-
-def make_investigator(client):
-    def investigator(state):
-        history = state.get("toolHistory", [])
-        budget = state["budget"]
-        if budget["iterations"] >= budget["maxIterations"] or budget["hopsExplored"] > budget["maxHops"]:
-            return hold("investigator", "budget_exceeded", "graph_search_budget_exceeded")
-        remaining = [name for name in TOOLS if name not in history and evidence_rows(state, name)]
-        selected = state.get("investigationFacts", evidence_rows(state, "rule_findings"))
-        if not remaining and not selected:
-            return hold("investigator", "evidence_insufficient", "investigation_no_grounded_facts")
-        choices = [*remaining, "finish"] if selected else remaining
-        result, budget = model_node(
-            client, state, "investigator",
-            "제공된 거래 사실로 조사한다. 필요하면 허용된 조회 항목 하나를 고른다. "
-            "증거가 충분하면 finish와 사용한 factId를 반환한다. 거래 목적이나 동일 자금을 확정하지 않는다.",
-            {"choices": choices, "targetTxId": state["identity"]["targetTxId"],
-             "scope": state["alertContext"]["scope"], "facts": selected},
-            choices,
-        ) if selected else (None, budget)
-        # Open the first available group when there are no grounded rule findings to show.
-        if result is None:
-            choice = remaining[0]
-        elif result["status"] != "ok":
-            return {**llm_hold("investigator", result), "budget": budget}
-        else:
-            choice = result["output"]["choice"]
-        budget = {**budget, "iterations": budget["iterations"] + 1}
-        attempts = result["callsUsed"] if result else 0
-        update = {"budget": budget, "trace": [{"node": "investigator", "outcome": choice, "llmCalls": attempts}]}
-        if choice == "finish":
-            accepted = set(result["output"]["factIds"])
-            return {**update, "route": "classify",
-                    "investigationFacts": [row for row in selected if row["factId"] in accepted]}
-        new = {row["factId"]: row for row in [*selected, *evidence_rows(state, choice)]}
-        return {**update, "route": "investigate", "toolHistory": [*history, choice],
-                "investigationFacts": list(new.values())[:40]}
-    return investigator
 
 
 def rag_args(state):

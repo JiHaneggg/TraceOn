@@ -52,6 +52,22 @@ def validation_scores(variant=VARIANT):
             "hybridOutOfFold": out_of_fold, "v2Config": frozen["selectedConfig"]}
 
 
+class OutOfFoldRisk:
+    """Risk source for validation alerts: each case scored by a model that did not see it."""
+
+    def __init__(self, data, thresholds=None):
+        self.scores = {case["graph"]["targetTxId"]: value
+                       for case, value in zip(data["cases"], data["hybridOutOfFold"])}
+        self.thresholds = thresholds or {}
+
+    def score(self, alert, context=None):
+        value = self.scores.get(alert["graph"]["targetTxId"])
+        if value is None:
+            return {"status": "unavailable", "reason": "not_a_validation_case"}
+        return {"status": "computed", "method": "rule_ml_hybrid_v1_out_of_fold", "score": round(value, 4),
+                "thresholds": self.thresholds}
+
+
 def trigger_report(data, hybrid_cut):
     cases = data["cases"]
     default = [row["flagged"] for row in data["defaultRules"]]

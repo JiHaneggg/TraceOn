@@ -8,17 +8,25 @@ from support import HAS_LANGGRAPH, load_alert
 class InvestigationGraphTests(unittest.TestCase):
     def setUp(self):
         from investigation_graph import RECURSION_LIMIT, build_graph, run_investigation
-        self.build_graph, self.run, self.limit = build_graph, run_investigation, RECURSION_LIMIT
+        from llm_client import LLMClient
 
-    def test_valid_alert_runs_alert_context_profile_and_gate(self):
+        def run(alert, **options):
+            # Never read a real key from the environment in tests: an unconfigured client makes no call.
+            return run_investigation(alert, **{"llm_client": LLMClient(env={}), **options})
+        self.build_graph, self.run, self.limit = build_graph, run, RECURSION_LIMIT
+
+    def test_valid_alert_runs_to_the_investigator_and_holds_without_a_model(self):
         result = self.run(load_alert("cycle"))
-        self.assertEqual(result["status"], "running")
-        self.assertEqual([row["node"] for row in result["trace"]], ["alert_context", "basic_profile", "evidence_check"])
+        self.assertEqual([row["node"] for row in result["trace"]],
+                         ["alert_context", "basic_profile", "evidence_check", "investigator", "human_review"])
+        self.assertTrue(result["humanReviewRequired"])
         self.assertEqual(result["alertContext"]["ruleIds"], ["CYCLE"])
         self.assertEqual({row["source"] for row in result["evidence"]}, {"alert_context", "basic_profile"})
         self.assertEqual(result["profile"]["similarity"]["status"], "unavailable")
         # No risk source: a cycle alert with facts is investigated, never closed blind.
-        self.assertEqual((result["route"], result["gate"]["reasonCode"]), ("investigate", "risk_unavailable_with_facts"))
+        self.assertEqual(result["gate"]["reasonCode"], "risk_unavailable_with_facts")
+        self.assertEqual((result["status"], result["hold"]["category"], result["hold"]["reasonCode"]),
+                         ("held", "model_failure", "llm_not_configured"))
         self.assertEqual(result["budget"]["llmCalls"], 0)
 
     def test_gate_closure_ends_the_run_as_closed(self):
@@ -54,20 +62,55 @@ class InvestigationGraphTests(unittest.TestCase):
         self.assertEqual(snapshot.values["alertContext"]["ruleIds"], ["FAN_IN"])
 
     def test_graph_exposes_ppt_node_names_and_a_recursion_limit(self):
-        nodes = set(self.build_graph().get_graph().nodes)
-        self.assertLessEqual({"alert_context", "basic_profile", "evidence_check"}, nodes)
+        from llm_client import LLMClient
+        full = set(self.build_graph(llm_client=LLMClient(env={}), call_tool=lambda name, arguments: {},
+                                    judge_enabled=True).get_graph().nodes)
+        self.assertLessEqual({"alert_context", "basic_profile", "evidence_check", "investigator", "graph_tools",
+                              "typology", "str_writer", "verifier", "report_judge", "human_review"}, full)
+        gate_only = set(self.build_graph().get_graph().nodes)
+        self.assertNotIn("investigator", gate_only)
         self.assertGreater(self.limit, 0)
 
-    def test_full_run_reuses_draft_and_verification_then_requires_a_person(self):
-        tool_calls = []
+    def test_rag_tools_or_judge_without_a_model_are_refused(self):
+        with self.assertRaises(ValueError):
+            self.build_graph(call_tool=lambda name, arguments: {})
+        with self.assertRaises(ValueError):
+            from llm_client import LLMClient
+            self.build_graph(llm_client=LLMClient(env={}), judge_enabled=True)
+
+    def test_full_run_hands_the_investigation_to_typology_draft_verification_and_a_person(self):
+        from investigator import CHECKLIST, SCHEMA_NAME
+        tool_calls, typology_payloads = [], []
+
+        def investigation_step(payload):
+            if not payload["toolHistory"]:
+                return {"checklist": [{"itemId": item, "status": "unconfirmed", "factIds": []} for item in CHECKLIST],
+                        "action": {"type": "call_tool", "tool": "find_cycles",
+                                   "accountKey": payload["accounts"][0]["accountKey"], "direction": None,
+                                   "hops": 3, "windowHours": 168},
+                        "conclusion": None, "rationale": "순환 경로를 확인한다."}
+            cycle = next(row["factId"] for row in payload["facts"] if row["factId"].endswith(".cycleCount"))
+            statuses = {"circularity": ("suspicious", [cycle]),
+                        "onward_flow": ("suspicious", ["profile.sender.forwarding.passThroughRatio"]),
+                        "source_pattern": ("benign", ["profile.receiver.flow.inCounterparties"]),
+                        "counterparty_role": ("not_applicable", ["profile.sender.flow.outCount"]),
+                        "amount_pattern": ("benign", ["profile.receiver.amounts.justBelowThresholdCount"])}
+            return {"checklist": [{"itemId": item, "status": statuses[item][0], "factIds": statuses[item][1]}
+                                  for item in CHECKLIST],
+                    "action": {"type": "conclude", "tool": None, "accountKey": None, "direction": None,
+                               "hops": None, "windowHours": None},
+                    "conclusion": "suspicious", "rationale": "돈이 원래 계좌로 돌아왔다."}
 
         class Model:
             def call(self, *, name, payload, validate, **kwargs):
-                answer = {"choice": "finish" if name == "investigator" else "cycle",
-                          "factIds": [payload["facts"][0]["factId"]]}
-                if name == "typology":
-                    answer["chunkIds"] = ["official:1"]
-                return {"status": "ok", "output": validate(answer), "callsUsed": 1, "costUsd": 0.01,
+                if name == SCHEMA_NAME:
+                    answer = investigation_step(payload)
+                    validate(answer)
+                else:
+                    typology_payloads.append(payload)
+                    answer = validate({"choice": "cycle", "factIds": [payload["facts"][0]["factId"]],
+                                       "chunkIds": ["official:1"]})
+                return {"status": "ok", "output": answer, "callsUsed": 1, "costUsd": 0.01, "responseId": "resp",
                         "usage": {"inputTokens": 10, "outputTokens": 3}}
 
         def tools(name, arguments):
@@ -82,8 +125,17 @@ class InvestigationGraphTests(unittest.TestCase):
 
         result = self.run(load_alert("cycle"), llm_client=Model(), call_tool=tools)
         self.assertEqual(result["status"], "completed")
-        self.assertEqual(result["trace"][-1]["node"], "human_review")
-        self.assertEqual(result["budget"]["llmCalls"], 2)
+        self.assertEqual([row["node"] for row in result["trace"]][3:],
+                         ["investigator", "graph_tools", "evidence_check", "investigator", "evidence_check",
+                          "typology", "str_writer", "verifier", "human_review"])
+        self.assertEqual(result["gate"]["loop"]["reasonCode"], "evidence_sufficient")
+        # The investigator's suspicious evidence reaches typology, after the rule fact it must cite.
+        handed = [row["factId"] for row in result["investigationFacts"]]
+        cycle = next(fact for fact in handed if fact.endswith(".cycleCount"))
+        self.assertEqual(set(handed[:2]), {cycle, "profile.sender.forwarding.passThroughRatio"})
+        self.assertLessEqual(set(handed), {row["factId"] for row in typology_payloads[0]["facts"]})
+        self.assertEqual(result["typology"]["choice"], "cycle")
+        self.assertEqual(result["budget"]["llmCalls"], 3)
         self.assertTrue(result["humanReviewRequired"])
         self.assertFalse(result["readyForSubmission"])
         self.assertEqual(tool_calls, ["build_evidence_context", "generate_review_report", "verify_review_report"])
