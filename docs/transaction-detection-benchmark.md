@@ -169,3 +169,5 @@ python -B $gradeScript evaluate --packet "$comparison/20261123-risk-grade-holdou
 | 룰+ML 95% · 에이전트 등급 5% | 175 | 83.05% | 61.33% | 83 | 92 | 17 | 250 |
 
 두 방식이 잡은 이상거래는 동일한 83건이었다. 결합으로 정상 후보 두 건이 다른 정상 거래 두 건으로 바뀌었다. 고정 가중치로 검토 순위를 개선한 효과는 확인되지 않았다. 시연의 검토 순위에는 룰+ML을 유지하고, RAG 설명과 보고서 검증은 별도 단계에서 평가한다. 최종 수치는 로컬의 `artifacts/detection-comparison/20261123-risk-grade-holdout-result.json`에 저장했다.
+
+이후 SAML-D의 새 기간에 같은 검토 한도를 적용한 결과와 재현 방법은 [반복 현금 입금 검증](saml-d-repeat-deposit-evaluation.md)에 정리했다.
