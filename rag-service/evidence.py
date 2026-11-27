@@ -163,7 +163,8 @@ def build_context(index, graph, rule_result=None, query=None):
                                      if has_domestic_law else "국내 법령 원문과 은행 내규는 아직 확보되지 않았습니다. 순환 구조만으로 범죄·동일 자금의 이동을 확정하지 않습니다.")
         if all(row["sourceKind"] == "synthetic_fixture" for row in index.chunks):
             context["limitations"][3] = "문서 코퍼스는 합성 테스트 자료로 구성되어 있습니다. 실제 거래에 대한 법령 적용은 별도로 검토해야 합니다."
-    fitness = assess(index, findings, context["citations"], context["evidenceTransactions"], searches[0])
+    fitness = assess(index, findings, context["citations"], context["evidenceTransactions"], searches[0],
+                     target_payment_format=target["paymentFormat"])
     if fitness is not None:
         context["contextVersion"] = "evidence-fit-v3"
         context["evidenceFitness"] = fitness

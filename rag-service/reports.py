@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 from corpus import canonical, digest
 from evidence import validate_draft
 from source_presentation import source_groups
-from evidence_fit import quotes_for_report
+from evidence_fit import observe_fan_in_cash, quotes_for_report
 
 
 class ReportUnavailable(RuntimeError):
@@ -143,7 +143,36 @@ def openai_plan(context, transport=None):
         raise ReportUnavailable("Provider transport/output validation failed; no fallback report was generated") from None
 
 
-def render_report(context, plan, generation, *, legacy_condition_labels=False):
+def cash_evidence_for_report(context, *, condition_rendering_version):
+    evidence = context.get("evidenceFitness", {}).get("cashEvidence")
+    if evidence is None:
+        evidence = observe_fan_in_cash(context["findings"], {tx["txId"]: tx for tx in context["evidenceTransactions"]},
+                                       context["targetTransaction"]["paymentFormat"])
+    if evidence is None:
+        return None
+    rows = []
+    for finding in evidence["findings"]:
+        total, cash = finding["transactionCount"], finding["cashCount"]
+        summary = f"조회된 집금 근거 {total}건 중 {cash}건이 Cash로 기록됐습니다."
+        # Reproduce archived 1.2 wording exactly when verifying saved drafts.
+        if condition_rendering_version == "1.2":
+            if not total:
+                summary = "조회된 집금 근거가 0건이어서 Cash 지급 방식 조건을 확인할 수 없습니다."
+            elif cash == total:
+                summary += " 조회된 근거는 모두 Cash입니다."
+            elif cash:
+                summary += " 지급 방식이 섞여 있어 조회된 집금 근거가 모두 Cash라는 조건을 충족하지 않습니다."
+            else:
+                summary += " 조회된 근거에서 Cash 지급 방식이 확인되지 않았습니다."
+        rows.append({**finding, "summary": summary})
+    return {**evidence, "findings": rows}
+
+
+def render_report(context, plan, generation, *, condition_rendering_version="1.3"):
+    if condition_rendering_version not in (None, "1.1", "1.2", "1.3"):
+        raise ValueError("Unknown condition rendering version")
+    if context.get("evidenceFitness", {}).get("cashEvidence") and condition_rendering_version != "1.3":
+        raise ValueError("The Cash observation policy requires the count-only report format")
     validate_plan(context, plan)
     observations = {row["observationId"]: row for row in observation_catalog(context)}
     citations = {row["chunkId"]: row for row in context["citations"]}
@@ -161,6 +190,17 @@ def render_report(context, plan, generation, *, legacy_condition_labels=False):
              f"- 생성 방식: {generation['method']}", "", "## 관찰한 거래와 탐지 근거", ""]
     for row in selected:
         lines += [row["text"], "", "근거 ID: " + ", ".join(row["factIds"]), ""]
+    cash_evidence = None
+    if condition_rendering_version in ("1.2", "1.3"):
+        cash_evidence = cash_evidence_for_report(context, condition_rendering_version=condition_rendering_version)
+    cash_finding_ids = set()
+    if cash_evidence is not None:
+        lines += ["## 집금 근거의 지급 방식", "",
+                  f"대상 거래의 지급 방식은 {cash_evidence['targetPaymentFormat']}입니다.", ""]
+        for row in cash_evidence["findings"]:
+            lines += [f"- {row['findingId']} · {row['summary']}"]
+            cash_finding_ids.add(row["findingId"])
+        lines += [""]
     lines += ["## 확인된 수치·거래", "", "| 사실 ID | 원본/계산 값 | 거래 근거 |", "|---|---|---|"]
     for fact in context["reportFacts"]:
         lines.append(f"| {fact['factId']} | {fact['value']} | {', '.join(fact['evidenceTxIds'])} |")
@@ -182,8 +222,10 @@ def render_report(context, plan, generation, *, legacy_condition_labels=False):
                 lines += ["- " + role["label"] + ": " + state]
             lines += ["", "추가로 확인할 항목:"]
             for item in finding["missingEvidence"]:
+                if item["id"] == "condition:cash_format_recorded" and finding["findingId"] in cash_finding_ids:
+                    continue
                 label = item["label"]
-                if not legacy_condition_labels and item["id"] in UNMET_PAYMENT_FORMAT_LABELS:
+                if condition_rendering_version is not None and item["id"] in UNMET_PAYMENT_FORMAT_LABELS:
                     label = UNMET_PAYMENT_FORMAT_LABELS[item["id"]]
                     uses_explicit_condition_labels = True
                 lines.append(f"- {label}: {item['reason']}")
@@ -226,7 +268,10 @@ def render_report(context, plan, generation, *, legacy_condition_labels=False):
                                      "sufficientForAutomatedDecision": False}
     if disposition:
         report["answerDisposition"] = disposition
-    if uses_explicit_condition_labels:
+    if cash_evidence is not None:
+        report["cashEvidence"] = cash_evidence
+        report["conditionRenderingVersion"] = condition_rendering_version
+    elif uses_explicit_condition_labels:
         report["conditionRenderingVersion"] = "1.1"
     report["reportId"] = "RPT-" + digest(canonical(report))[:24]
     return report

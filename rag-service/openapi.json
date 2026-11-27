@@ -1173,6 +1173,28 @@
               }
             }
           },
+          "cashEvidence": {
+            "type": "object",
+            "description": "Present for FAN_IN findings under evidence policy v2. Counts describe the transactions in each finding's evidenceTxIds within the queried graph. Cash counts do not affect the assessment status.",
+            "required": ["targetPaymentFormat", "findings"],
+            "properties": {
+              "targetPaymentFormat": {
+                "type": "string"
+              },
+              "findings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["findingId", "transactionCount", "cashCount"],
+                  "properties": {
+                    "findingId": { "type": "string" },
+                    "transactionCount": { "type": "integer", "minimum": 0 },
+                    "cashCount": { "type": "integer", "minimum": 0 }
+                  }
+                }
+              }
+            }
+          },
           "requiredCitationIds": {
             "type": "array",
             "items": {

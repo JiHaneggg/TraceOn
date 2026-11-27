@@ -15,7 +15,7 @@
 | 룰 | 연결한 유형 자료 | 확인하는 구조/지급 방식 | 추가로 필요한 정보 |
 |---|---|---|---|
 | CYCLE | 현재 확보 자료 중 직접 연결한 순환 유형 근거 없음 | 재검산한 시간 순서·경로 | 동일 자금의 이동, 거래 목적, 고객/소유자 관계, 유형 원문 |
-| FAN_IN | [FinCEN FIN-2014-A005](https://www.fincen.gov/resources/advisories/fincen-advisory-fin-2014-a005)의 Funnel Account 정의 | 여러 송신 계좌, 지급 방식 Cash 기록 | 지역 간 출금 맥락, 거래 목적, 고객/소유자 관계 |
+| FAN_IN | [FinCEN FIN-2014-A005](https://www.fincen.gov/resources/advisories/fincen-advisory-fin-2014-a005)의 Funnel Account 정의 | 여러 송신 계좌, 조회된 근거의 전체 건수와 Cash 건수 | 지역 간 출금 맥락, 거래 목적, 고객/소유자 관계 |
 | FAN_OUT | [FINTRAC 금융기관 징후 안내](https://fintrac-canafe.canada.ca/guidance-directives/transaction-operation/indicators-indicateurs/fin_mltf-eng)의 복수 고객 송금 참고 문구 | 여러 수취 계좌, 지급 방식 Wire 기록 | 거래 목적, 실제 고객/소유자 관계 |
 
 FinCEN의 현금 입금·다른 지역 출금 등 맥락을 단순 집금 그래프와 같다고 보지 않는다. FINTRAC의 고객 관련 조건도 계좌 수만으로 확인하지 않는다. 지급 방식 대조는 원천 `paymentFormat` 문자열을 확인하는 것이며 거래의 법적 분류나 현금 입금의 성격을 인증하지 않는다. 문서가 언급하는 전체 조건을 자동 판독하는 기능도 아니다.
@@ -24,7 +24,9 @@ FinCEN의 현금 입금·다른 지역 출금 등 맥락을 단순 집금 그래
 
 ## 정책과 원문 고정
 
-`rag-service/evidence_fit_policy.json`은 검토한 원문 4개를 특정 청크·원본/본문 해시·정확한 발췌와 연결한다. 역할별 매핑과 최소 확인 항목을 기록하며 정책 자체의 SHA256을 검증한다. 임의 실행 코드·검색식·판단식을 받지 않는다.
+`rag-service/evidence_fit_policy.json`의 현재 정책은 `traceon-evidence-fit-v2`다. 검토한 원문을 특정 청크와 원본·본문 해시, 정확한 발췌에 연결한다. 역할별 매핑과 확인 항목을 기록하며 정책 자체의 SHA256을 검증한다.
+
+v2 근거 API와 Agent의 `assess_evidence_fit`은 집금 탐지마다 `evidenceFitness.cashEvidence.findings`에 `findingId`, `transactionCount`, `cashCount`를 제공한다. 건수는 해당 탐지의 `evidenceTxIds`와 그래프 원본의 `paymentFormat`으로 계산한다. 대상 거래의 지급 방식은 `targetPaymentFormat`에 담는다. 보고서도 이 값을 사용한다. Cash 건수는 점검 상태와 `missingEvidence`에 영향을 주지 않는다. v1 저장본은 당시 `corpusSha256`가 가리키는 정책과 원문으로 검증한다.
 
 현재 `reviewStatus=developer_curated_pending_domain_review`다. 개발자가 출처/문구/조건을 검토한 초안으로, 멘토나 현업의 법적 적합성 검토를 통과했다는 뜻은 아니다. 명시적 조건 점검을 일반 의미 검증 성공으로 표시하지 않는다.
 

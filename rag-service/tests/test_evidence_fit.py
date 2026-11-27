@@ -14,7 +14,7 @@ import test_domestic_sources as fixtures
 from corpus import canonical, digest, atomic_json
 from corpus_manager import CorpusManager
 from evidence import build_context
-from evidence_fit import MIN_CONDITIONS, policy_digest, validate_policy, assessment_response
+from evidence_fit import CASH_OBSERVATION_POLICY_ID, MIN_CONDITIONS, policy_digest, validate_policy, assessment_response
 from evidence_lookup import EvidenceRepository
 from retrieval import Index
 from reports import generate_report, default_plan, render_report, validate_plan
@@ -56,6 +56,14 @@ class EvidenceFitTest(unittest.TestCase):
 
     def report(self,kind='fan_in'):
         return generate_report(self.context(kind))
+
+    def activate_cash_observation_policy(self):
+        policy = copy.deepcopy(self.policy)
+        policy['policyId'] = CASH_OBSERVATION_POLICY_ID
+        policy['rules']['FAN_IN']['conditions'].remove('cash_format_recorded')
+        policy['policySha256'] = policy_digest(policy)
+        self.manager.apply_evidence_policy(policy, self.index.corpus_hash)
+        return Index(self.path)
 
     @staticmethod
     def rehash(report):
@@ -124,25 +132,117 @@ class EvidenceFitTest(unittest.TestCase):
         self.assertEqual(conditions['economic_purpose'],'not_verified')
         self.assertFalse(finding['boundedRequirementsMet'])
 
-    def test_unmet_payment_conditions_render_as_gaps_and_legacy_reports_verify(self):
+    def test_older_payment_condition_reports_still_verify(self):
         for kind, payment_format in (("fan_in", "Cash"), ("fan_out", "Wire")):
             with self.subTest(kind=kind):
                 graph = self.graph(kind)
                 for row in graph["edges"]:
                     row["paymentFormat"] = "ACH"
                 context = build_context(self.index, graph)
-                report = generate_report(context)
+                current = generate_report(context)
+                report = render_report(context, current["plan"], current["generation"],
+                                       condition_rendering_version="1.1")
                 legacy_label = f"관련 거래의 원천 지급 방식이 모두 {payment_format}로 기록됨"
                 self.assertIn(f"{payment_format} 조건 미충족", report["markdown"])
                 self.assertNotIn(legacy_label, report["markdown"])
                 self.assertTrue(verify_report(self.repo, graph, None, report)["valid"])
 
-                legacy = render_report(context, report["plan"], report["generation"], legacy_condition_labels=True)
+                legacy = render_report(context, report["plan"], report["generation"],
+                                       condition_rendering_version=None)
                 self.assertIn(legacy_label, legacy["markdown"])
                 self.assertTrue(verify_report(self.repo, graph, None, legacy)["valid"])
 
                 report["markdown"] = legacy["markdown"]
                 self.assertFalse(verify_report(self.repo, graph, None, self.rehash(report))["valid"])
+
+    def test_fan_in_counts_distinguish_the_target_and_verified_finding(self):
+        for mode in ("none", "mixed", "all"):
+            with self.subTest(mode=mode):
+                graph = self.graph()
+                finding = next(row for row in build_context(self.index, graph)["findings"] if row["ruleId"] == "FAN_IN")
+                evidence_ids = set(finding["evidenceTxIds"])
+                cash_ids = {min(evidence_ids - {graph["targetTxId"]})} if mode == "mixed" else set()
+                if mode == "all":
+                    cash_ids = evidence_ids
+                for row in graph["edges"]:
+                    row["paymentFormat"] = "Cash" if row["txId"] in cash_ids else "Credit Card"
+                context = build_context(self.index, graph)
+                report = generate_report(context)
+                summary = report["cashEvidence"]["findings"][0]
+                self.assertEqual(summary["findingId"], finding["findingId"])
+                self.assertEqual((summary["transactionCount"], summary["cashCount"]), (len(evidence_ids), len(cash_ids)))
+                observation = f"조회된 집금 근거 {len(evidence_ids)}건 중 {len(cash_ids)}건이 Cash로 기록됐습니다."
+                self.assertEqual(summary["summary"], observation)
+                self.assertIn(observation, report["markdown"])
+                target_format = "Cash" if graph["targetTxId"] in cash_ids else "Credit Card"
+                self.assertEqual(report["cashEvidence"]["targetPaymentFormat"], target_format)
+                self.assertIn(f"대상 거래의 지급 방식은 {target_format}입니다.", report["markdown"])
+                self.assertNotIn("Cash 조건 미충족", report["markdown"])
+                self.assertNotIn("모두 Cash라는 조건", report["markdown"])
+                self.assertEqual(report["conditionRenderingVersion"], "1.3")
+                if mode == "mixed":
+                    historical = render_report(context, report["plan"], report["generation"],
+                                               condition_rendering_version="1.2")
+                    self.assertIn("모두 Cash라는 조건", historical["markdown"])
+                    self.assertTrue(verify_report(self.repo, graph, None, historical)["valid"])
+                self.assertTrue(verify_report(self.repo, graph, None, report)["valid"])
+                summary["cashCount"] += 1
+                check = verify_report(self.repo, graph, None, self.rehash(report))
+                self.assertFalse(check["valid"])
+                self.assertIn("cashEvidence", check["checks"]["renderedContent"]["mismatchedFields"])
+
+    def test_v2_cash_observation_preserves_review_state_for_zero_some_and_all_cash(self):
+        current = self.activate_cash_observation_policy()
+        graph = self.graph()
+        finding = next(row for row in build_context(current, graph)['findings'] if row['ruleId'] == 'FAN_IN')
+        ids = sorted(finding['evidenceTxIds'])
+        missing = None
+        for count in (0, 1, len(ids)):
+            with self.subTest(cash_count=count):
+                for edge in graph['edges']:
+                    edge['paymentFormat'] = 'Cash' if edge['txId'] in ids[:count] else 'Credit Card'
+                context = build_context(current, graph)
+                result = context['evidenceFitness']
+                assessment = next(row for row in result['findings'] if row['findingId'] == finding['findingId'])
+                self.assertEqual(result['status'], 'needs_more_evidence')
+                self.assertEqual(assessment['status'], 'partial_reference')
+                self.assertNotIn('cash_format_recorded', {row['conditionId'] for row in assessment['conditionChecks']})
+                if missing is None:
+                    missing = assessment['missingEvidence']
+                    self.assertTrue({'condition:geographic_withdrawal_context', 'condition:client_identity'}
+                                    <= {row['id'] for row in missing})
+                self.assertEqual(assessment['missingEvidence'], missing)
+                observation = result['cashEvidence']
+                self.assertEqual(observation['targetPaymentFormat'], context['targetTransaction']['paymentFormat'])
+                self.assertEqual(observation['findings'], [{
+                    'findingId': finding['findingId'], 'transactionCount': len(ids), 'cashCount': count}])
+                report = generate_report(context)
+                self.assertEqual(report['evidenceFitness']['cashEvidence'], observation)
+                self.assertEqual(report['cashEvidence']['findings'][0]['cashCount'], count)
+                self.assertTrue(verify_report(EvidenceRepository(current), graph, None, report)['valid'])
+        non_fan_in = build_context(current, self.graph('fan_out'))['evidenceFitness']
+        self.assertNotIn('cashEvidence', non_fan_in)
+        fan_out = next(row for row in non_fan_in['findings'] if row['ruleId'] == 'FAN_OUT')
+        self.assertIn('wire_format_recorded', {row['conditionId'] for row in fan_out['conditionChecks']})
+
+    def test_v2_keeps_v1_reports_pinned_and_rejects_outdated_rendering_and_policy(self):
+        graph = self.graph()
+        old_context = build_context(self.index, graph)
+        report = generate_report(old_context)
+        previous = render_report(old_context, report['plan'], report['generation'], condition_rendering_version='1.1')
+        current = self.activate_cash_observation_policy()
+        repo = EvidenceRepository(current)
+        self.assertTrue(verify_report(repo, graph, None, previous)['valid'])
+        self.assertEqual(build_context(repo.index_for(self.index.corpus_hash), graph), old_context)
+        revised = generate_report(build_context(current, graph))
+        self.assertEqual(revised['draft']['citations'], previous['draft']['citations'])
+        revised['conditionRenderingVersion'] = '1.2'
+        self.assertFalse(verify_report(repo, graph, None, self.rehash(revised))['valid'])
+        invalid = copy.deepcopy(current.evidence_fit_policy)
+        invalid['rules']['FAN_IN']['conditions'].append('cash_format_recorded')
+        invalid['policySha256'] = policy_digest(invalid)
+        with self.assertRaises(ValueError):
+            validate_policy(invalid)
 
     def test_insufficient_question_is_not_answered_by_other_references(self):
         context=self.context(query='KB국민은행 내부 규정 STR 승인 기준')
@@ -265,6 +365,13 @@ class EvidenceFitTest(unittest.TestCase):
             code,body=request({'graph':self.graph(),'corpusSha256':self.old.corpus_hash})
             self.assertEqual(code,200);self.assertEqual(body['status'],'not_configured')
             self.assertEqual(request({'graph':self.graph(),'assessment':{}})[0],400)
+            current = self.activate_cash_observation_policy()
+            code, body = request({'graph': self.graph()})
+            self.assertEqual(code, 200)
+            self.assertEqual(body['corpusSha256'], current.corpus_hash)
+            self.assertEqual(body, tools.call('assess_evidence_fit', {'graph': self.graph()}))
+            self.assertIn('cashEvidence', body['evidenceFitness'])
+            self.assertEqual(request({'graph': self.graph(), 'corpusSha256': self.index.corpus_hash}), (200, result))
         finally:server.shutdown();server.server_close();thread.join(timeout=5)
 
 
